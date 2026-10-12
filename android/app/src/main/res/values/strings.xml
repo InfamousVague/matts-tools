@@ -1,0 +1,5 @@
+<resources>
+    <string name="frames_widget_about">Frames a second and janky frames for the app in front, while measuring. Tap to start or stop.</string>
+    <string name="awake_widget_about">Shows whether the screen is being kept awake and for how long. Tap to switch.</string>
+    <string name="dock_access_about">Draws the dock beside the camera above the status bar, so that it can be tapped there. It reads nothing on the screen and sees nothing you type.</string>
+</resources>

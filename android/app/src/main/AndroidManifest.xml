@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+    <!-- Drawn over other apps: the dock, Frames' readout, and the invisible window by which Amphetamine holds the screen on. -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- Amphetamine's fallback: the system's own timeout and brightness, put back afterwards. -->
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" tools:ignore="ProtectedPermissions" />
+    <!-- Frames: both given once from a computer (its first screen says how). -->
+    <uses-permission android:name="android.permission.DUMP" tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" tools:ignore="ProtectedPermissions" />
+    <!-- Frames, and Amphetamine's "while these apps are in front": which app is in front. -->
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:ignore="QueryAllPackagesPermission" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <application android:name="com.mattssoftware.tools.App" android:allowBackup="false" android:icon="@mipmap/ic_launcher"
+        android:label="Matt's Tools" android:theme="@style/AppTheme">
+
+        <!-- ==== Matt's Tools: the page of tools, and the setting-up ==== -->
+        <activity android:name="com.mattssoftware.tools.HomeActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- A long press on any of the tiles comes here. -->
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.mattssoftware.tools.SetupActivity" android:exported="false" />
+        <activity android:name="com.mattssoftware.tools.ToastyActivity" android:exported="false" />
+
+        <!-- ==== The dock ==== -->
+        <activity android:name="com.mattssoftware.dock.MainActivity" android:exported="false" />
+        <service android:name="com.mattssoftware.dock.DockService" android:exported="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Keeps a small floating readout on screen (the phone's temperature and the state of the app's own tools) while the person has it switched on." />
+        </service>
+        <service android:name="com.mattssoftware.dock.DockAccess" android:exported="true" android:label="Matt's Tools: the dock beside the camera"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter><action android:name="android.accessibilityservice.AccessibilityService" /></intent-filter>
+            <meta-data android:name="android.accessibilityservice" android:resource="@xml/dock_access" />
+        </service>
+        <receiver android:name="com.mattssoftware.dock.Boot" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- ==== Amphetamine ==== -->
+        <activity android:name="com.mattssoftware.amphetamine.MainActivity" android:exported="false" />
+        <service android:name="com.mattssoftware.amphetamine.AwakeService" android:exported="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Keeps the screen on while the person has switched a session on from the quick settings tile." />
+        </service>
+        <service android:name="com.mattssoftware.amphetamine.AwakeTile" android:exported="true" android:icon="@drawable/ic_pill" android:label="Amphetamine"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter><action android:name="android.service.quicksettings.action.QS_TILE" /></intent-filter>
+            <meta-data android:name="android.service.quicksettings.TOGGLEABLE_TILE" android:value="true" />
+        </service>
+        <service android:name="com.mattssoftware.amphetamine.BrightTile" android:exported="true" android:icon="@drawable/ic_sun" android:label="Awake: full brightness"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter><action android:name="android.service.quicksettings.action.QS_TILE" /></intent-filter>
+            <meta-data android:name="android.service.quicksettings.TOGGLEABLE_TILE" android:value="true" />
+        </service>
+        <service android:name="com.mattssoftware.amphetamine.ChargeJob" android:exported="false" android:permission="android.permission.BIND_JOB_SERVICE" />
+        <receiver android:name="com.mattssoftware.amphetamine.Toggle" android:exported="false" />
+        <receiver android:name="com.mattssoftware.amphetamine.Boot" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name="com.mattssoftware.amphetamine.PillWidget" android:exported="true" android:label="Amphetamine">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/awake_widget" />
+        </receiver>
+
+        <!-- ==== Frames: its screens are Flutter's (lib/) ==== -->
+        <activity android:name="com.mattssoftware.frames.MainActivity" android:exported="false" android:launchMode="singleTop" android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode" />
+        <service android:name="com.mattssoftware.frames.ProfilerService" android:exported="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Measures frame timings of the app in front while the person has switched measuring on, for a developer comparing builds." />
+        </service>
+        <service android:name="com.mattssoftware.frames.FramesTile" android:exported="true" android:icon="@drawable/ic_frames" android:label="Frames"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter><action android:name="android.service.quicksettings.action.QS_TILE" /></intent-filter>
+            <meta-data android:name="android.service.quicksettings.TOGGLEABLE_TILE" android:value="true" />
+        </service>
+        <receiver android:name="com.mattssoftware.frames.Toggle" android:exported="false" />
+        <receiver android:name="com.mattssoftware.frames.PillWidget" android:exported="true" android:label="Frames">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/frames_widget" />
+        </receiver>
+
+        <meta-data android:name="flutterEmbedding" android:value="2" />
+    </application>
+</manifest>
