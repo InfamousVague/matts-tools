@@ -42,6 +42,20 @@ class App : Application() {
         AwakeStart.run(this)
         ProfilerService.channel(this)
         runCatching { DockService.apply(this) }
+        // Measuring that an update or a restart of the app cut short is taken up again.
+        runCatching { if (com.mattssoftware.frames.Prefs(this).measuring && com.mattssoftware.frames.Access.ready(this)) ProfilerService.set(this, true) }
+    }
+}
+
+/**
+ * After an update, and after the phone starts: measuring that was on is taken up again. It is done here and not as
+ * the app starts, because Android refuses a foreground service started from the background ("startForegroundService()
+ * not allowed") except from a few places, and the receiver of these two broadcasts is one of them. Started from
+ * [App], Frames stayed off after every update while still saying it was measuring.
+ */
+class Boot : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        runCatching { if (com.mattssoftware.frames.Prefs(context).measuring && com.mattssoftware.frames.Access.ready(context)) ProfilerService.set(context, true) }
     }
 }
 

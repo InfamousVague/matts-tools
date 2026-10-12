@@ -38,3 +38,10 @@ The app's first page walks through the permissions. Frames needs one more, given
 ```bash
 adb shell pm grant com.mattssoftware.tools android.permission.DUMP
 ```
+
+## Measuring an app screen by screen, from a computer
+
+`tool/tabs.py <device>` prints the labels and places of the tab bar of the app in front. `tool/screens.py <device>
+<package> '<[["Home",139,1696], ...]>' <x to swipe at>` taps each of those in turn, scrolls up and down for seven
+seconds, and prints frames a second, the 1% low, the share of janky frames and the frame times for each, read from
+the compositor as Frames reads them on the phone. It only taps the places it is given and swipes up and down.

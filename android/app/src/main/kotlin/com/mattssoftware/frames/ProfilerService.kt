@@ -42,7 +42,10 @@ class ProfilerService : Service() {
     private var lastVsync = 0L
     private var layer: String? = null
     private var quiet = 0
-    private var lookedAt = System.currentTimeMillis() - 10_000L
+    // Which app is in front is told by the last one to come forward, which may have been long before measuring was
+    // switched on: the first look goes back half a day. (It went back ten seconds, and an app already open when
+    // measuring began was not seen until another had been opened and it had been come back to.)
+    private var lookedAt = System.currentTimeMillis() - 43_200_000L
     /** The app's screen in front (its activity), by its short name. */
     private var screen = ""
     private val screenOf = HashMap<String, String>()
@@ -55,20 +58,43 @@ class ProfilerService : Service() {
     private val hud by lazy { Hud(this) }
     private val prefs by lazy { Prefs(this) }
 
+    private var failed = ""
+    private var idle = ""
     private val tick = object : Runnable {
         override fun run() {
-            runCatching { second() }
+            // A second that went wrong is said, once for each kind of wrong: unsaid, it only ever looked like 0 fps.
+            runCatching { second() }.onFailure { val what = it.toString(); if (what != failed) { failed = what; Trace.add("a second failed: $what at ${it.stackTrace.firstOrNull()}") } }
+            work.postDelayed(half, 500L)
             work.postDelayed(this, 1_000L)
+        }
+    }
+
+    /**
+     * Half way through each second, the window's frames are taken once more. The compositor keeps the last 126 of a
+     * window: a second's worth at 120 Hz with nothing to spare, so read once a second a late read lost frames.
+     */
+    private val carried = ArrayList<Frame>()
+    private val half = Runnable {
+        runCatching {
+            val window = layer ?: return@runCatching
+            val current = session ?: return@runCatching
+            val newer = FrameStats.read(window).frames.filter { it.vsyncNs > lastVsync }
+            if (newer.isNotEmpty()) {
+                lastVsync = newer.last().vsyncNs
+                newer.forEach { current.add(it, screen); recent.addLast(it.totalMs) }
+                carried.addAll(newer)
+            }
         }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == "off") { stop(); return START_NOT_STICKY }
+        if (intent?.action == "off") { Prefs(this).measuring = false; stop(); return START_NOT_STICKY }
         running = true
+        Prefs(this).measuring = true
         show("Waiting for an app", null)
-        work.removeCallbacks(tick); work.post(tick)
+        work.removeCallbacks(tick); work.removeCallbacks(half); work.post(tick)
         tell(this)
         return START_STICKY
     }
@@ -88,7 +114,10 @@ class ProfilerService : Service() {
         while (events.hasNextEvent()) { events.getNextEvent(event); if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) { front = event.packageName; screenOf[event.packageName] = event.className.orEmpty().substringAfterLast('.') } }
         val pkg = front
         val power = getSystemService(POWER_SERVICE) as PowerManager
-        if (pkg == null || pkg == packageName || !power.isInteractive || pkg in SKIP) { close(); live = null; main.post { hud.hide() }; show("Waiting for an app", null); tell(this); return }
+        if (pkg == null || pkg == packageName || !power.isInteractive || pkg in SKIP) {
+            val why = "waiting: front ${pkg ?: "unknown"}, screen ${if (power.isInteractive) "on" else "off"}"
+            if (why != idle) { idle = why; Trace.add(why) }
+            close(); live = null; main.post { hud.hide() }; show("Waiting for an app", null); tell(this); return }
         if (session?.pkg != pkg) { close(); open(pkg) }
         val current = session ?: return
         val at = screenOf[pkg].orEmpty().ifEmpty { "?" }
@@ -96,7 +125,7 @@ class ProfilerService : Service() {
 
         // The window that is drawing: kept while it keeps drawing, looked for again when it goes quiet.
         var read = layer?.let { FrameStats.read(it) }
-        if (read == null || read.frames.none { it.vsyncNs > lastVsync }) {
+        if (carried.isEmpty() && (read == null || read.frames.none { it.vsyncNs > lastVsync })) {
             quiet += 1
             if (layer == null || quiet >= 2) {
                 val was = layer
@@ -106,11 +135,14 @@ class ProfilerService : Service() {
                 if (layer != null) missing = false
             }
         } else quiet = 0
-        val fresh = read?.frames.orEmpty().filter { it.vsyncNs > lastVsync }
+        val newer = read?.frames.orEmpty().filter { it.vsyncNs > lastVsync }
+        // The second's frames: those taken half way through, and those since.
+        val fresh = carried + newer
+        carried.clear()
         if (read != null && read.periodMs > 0f) current.refreshHz = 1000f / read.periodMs
         if (fresh.isNotEmpty()) {
-            lastVsync = fresh.last().vsyncNs
-            fresh.forEach { current.add(it, screen); recent.addLast(it.totalMs) }
+            if (newer.isNotEmpty()) lastVsync = newer.last().vsyncNs
+            newer.forEach { current.add(it, screen); recent.addLast(it.totalMs) }
             while (recent.size > 120) recent.removeFirst()
             current.activeSeconds += 1
             current.screens[screen]?.let { it.seconds += 1 }
@@ -149,6 +181,8 @@ class ProfilerService : Service() {
         val now2 = Live(current.label, fpsNow, stats.jankPct, stats.frames, current.refreshHz, screen, worst, heat.skin ?: temp, recent.toFloatArray())
         live = now2
         debug = Debug(pkg, layer, read?.frames?.size ?: 0, read?.periodMs ?: 0f, fresh.size)
+        // One line a second for whoever is reading the phone's log while it measures.
+        android.util.Log.d("Frames", "$pkg ${fresh.size} new of ${read?.frames?.size ?: 0} held, window ${layer ?: "none"}")
         val readout = prefs.hud && Settings.canDrawOverlays(this); val corner = prefs.corner
         main.post { if (readout && running) hud.set(now2, corner) else hud.hide() }
         show(current.label, live)
@@ -166,7 +200,7 @@ class ProfilerService : Service() {
         layer = first?.layer; quiet = 0
         lastVsync = first?.frames?.lastOrNull()?.vsyncNs ?: 0L
         session?.startNano = System.nanoTime()
-        recent.clear(); screen = ""; missing = false
+        recent.clear(); carried.clear(); screen = ""; missing = false
         Trace.add("opened $pkg ${info?.versionName ?: "?"}, window ${layer ?: "none yet"}")
     }
 

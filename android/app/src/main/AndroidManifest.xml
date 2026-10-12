@@ -29,6 +29,12 @@
                 <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
             </intent-filter>
         </activity>
+        <receiver android:name="com.mattssoftware.tools.Boot" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
         <activity android:name="com.mattssoftware.tools.SetupActivity" android:exported="false" />
         <activity android:name="com.mattssoftware.tools.ToastyActivity" android:exported="false" />
 
@@ -83,7 +89,9 @@
         <activity android:name="com.mattssoftware.frames.MainActivity" android:exported="false" android:launchMode="singleTop" android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode" />
-        <service android:name="com.mattssoftware.frames.ProfilerService" android:exported="false" android:foregroundServiceType="specialUse">
+        <!-- Startable from a computer (adb holds DUMP; no other app does): `am start-foreground-service -a on`. -->
+        <service android:name="com.mattssoftware.frames.ProfilerService" android:exported="true" android:permission="android.permission.DUMP"
+            android:foregroundServiceType="specialUse">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Measures frame timings of the app in front while the person has switched measuring on, for a developer comparing builds." />
         </service>

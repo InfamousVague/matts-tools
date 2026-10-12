@@ -22,6 +22,10 @@ class Prefs(context: Context) {
     var scenario: String
         get() = kept.getString("scenario", "") ?: ""
         set(v) = kept.edit().putString("scenario", v).apply()
+    /** Measuring was on when the app was last running: it is taken up again as the app starts (an update ends it). */
+    var measuring: Boolean
+        get() = kept.getBoolean("measuring", false)
+        set(v) = kept.edit().putBoolean("measuring", v).apply()
     /** The readout drawn over the app being measured, and which corner it sits in (0 top left, clockwise). */
     var hud: Boolean
         get() = kept.getBoolean("hud", false)

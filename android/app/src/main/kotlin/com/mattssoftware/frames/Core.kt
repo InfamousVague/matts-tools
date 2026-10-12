@@ -34,13 +34,16 @@ object FrameStats {
     fun layersOf(pkg: String): List<String> = layerNames(dumpsys("--list"), pkg)
 
     fun layerNames(list: String, pkg: String): List<String> = list.lineSequence().mapNotNull { raw ->
-        // "RequestedLayerState{b5cc252 com.app/com.app.Main#358 parentId=352}", or the bare name on older phones.
-        var name = raw.trim().removePrefix("RequestedLayerState{").substringBefore(" parentId").removeSuffix("}")
-        if (Regex("^[0-9a-f]{5,8} ").containsMatchIn(name)) name = name.substringAfter(' ')
+        // "RequestedLayerState{5b0b98d SurfaceView[com.app/com.app.Main]@0(BLAST)#9394 parentId=9393}", or the bare name
+        // on older phones. The letters and digits before a name are part of it: `--latency` asked for the name
+        // without them answers with nothing, which was Ghost.md (a Flutter app, drawn to a surface of its own)
+        // reading no frames at all. So the whole name is kept, and only looked at without them.
+        val name = raw.trim().removePrefix("RequestedLayerState{").substringBefore(" parentId").removeSuffix("}")
+        val bare = if (Regex("^[0-9a-f]{5,8} ").containsMatchIn(name)) name.substringAfter(' ') else name
         // Android 17 keeps a window's frames on a layer of the view root's own, under the window's: "VRI-com.app/
-        // com.app.Main$_19800#7520". The window's own layer is listed still and holds none: read alone it said 0 fps
-        // for every app on the Fold. Both are offered, and the one with the newest frames is taken ([newest]).
-        name.takeIf { it.contains('#') && (it.startsWith("$pkg/") || it.startsWith("VRI-$pkg/") || it.startsWith("SurfaceView[$pkg/") || it.startsWith("SurfaceView - $pkg/")) }
+        // com.app.Main$_19800#7520". The window's own layer is listed still and holds none. All are offered, and the
+        // one with the newest frames is taken ([newest]).
+        name.takeIf { bare.contains('#') && (bare.startsWith("$pkg/") || bare.startsWith("VRI-$pkg/") || bare.startsWith("SurfaceView[$pkg/") || bare.startsWith("SurfaceView - $pkg/")) }
     }.distinct().toList()
 
     fun read(layer: String): Read = parse(layer, dumpsys("--latency", layer))
@@ -81,7 +84,7 @@ object Shell {
 object Trace {
     private val lines = ArrayDeque<String>()
     private val clock = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US)
-    @Synchronized fun add(line: String) { lines.addLast("${clock.format(java.util.Date())}  $line"); while (lines.size > 200) lines.removeFirst() }
+    @Synchronized fun add(line: String) { android.util.Log.i("Frames", line); lines.addLast("${clock.format(java.util.Date())}  $line"); while (lines.size > 200) lines.removeFirst() }
     @Synchronized fun text(): String = lines.joinToString("\n")
 }
 
