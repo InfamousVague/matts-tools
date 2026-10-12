@@ -62,7 +62,7 @@ class Prefs(context: Context) {
     var blur: Boolean get() = flag("blur", true); set(v) = set("blur", v)
 
     /** On a screen [wide] by [tall]: "float", or "island" to sit against the camera. A Fold has two screens. */
-    fun mode(wide: Int, tall: Int): String = kept.getString("mode:$wide:$tall", "float") ?: "float"
+    fun mode(wide: Int, tall: Int): String? = kept.getString("mode:$wide:$tall", null)
     fun mode(wide: Int, tall: Int, v: String) = kept.edit().putString("mode:$wide:$tall", v).apply()
     /** Where the dock's parts stand about the camera on this screen ("left", "right", "both"); null where it was never chosen. */
     fun side(wide: Int, tall: Int): String? = kept.getString("side:$wide:$tall", null)
@@ -125,6 +125,13 @@ object Sources {
  * To add a phone: its model as `Build.MODEL` begins, the screen's size, and the hole. `measured` is false for a
  * place worked out from pictures and not yet lined up on the phone (the dock's page has arrows to line it up; what
  * they come to is in the app's preferences as `hole:<wide>:<tall>`).
+ */
+/*
+ * Which phones need a line here: only a screen that does not report its own cut-out. Every other screen, a folding
+ * phone's cover screen among them, is read from the phone as the app runs ([DockService.hole]), with the dock's parts
+ * put to the side that has room ([DockService.side]); so a folding phone not listed here is still docked beside the
+ * camera of each screen that says where its camera is. A place is added only from a phone it was measured on: a
+ * guess of another phone's pixels would put the frame in the wrong place and look like a bug.
  */
 object Phones {
     /** [side]: where the dock's parts stand about the camera on this screen: "left", "right", or "both" with the camera in the middle. */
@@ -225,7 +232,7 @@ class DockService : Service() {
     private fun show() {
         if (pill != null) return
         val (wide, tall) = screen()
-        val camera = if (prefs.mode(wide, tall) == "island") hole(base, prefs, wide, tall) else null
+        val camera = hole(base, prefs, wide, tall)?.takeIf { docked(prefs, wide, tall, it) }
         island = camera
         // Beside the camera, and the accessibility service on: the window is that service's, of the kind drawn ABOVE
         // the status bar, which is the only kind a tap reaches there (the status bar takes every touch on its strip
@@ -504,7 +511,19 @@ class DockService : Service() {
          * kept for the phone; or else the camera's left, unless it is so near the left edge that there is no room.
          */
         fun side(prefs: Prefs, wide: Int, tall: Int, camera: Rect): String =
-            prefs.side(wide, tall) ?: Phones.hole(wide, tall)?.side ?: if (camera.left <= wide * 3 / 10) "right" else "left"
+            prefs.side(wide, tall) ?: Phones.hole(wide, tall)?.side ?: when {
+                // A camera in the middle of the screen: about it, to both sides. One near the left edge: to its right.
+                kotlin.math.abs(camera.centerX() - wide / 2) < wide * 8 / 100 -> "both"
+                camera.left <= wide * 3 / 10 -> "right"
+                else -> "left"
+            }
+
+        /**
+         * Whether the dock sits beside the camera on this screen: as chosen on the page; and where nothing was
+         * chosen, beside it wherever the camera's place is known (Matt, 2026-10-12: "if we have support for the
+         * phone's camera position default to using that").
+         */
+        fun docked(prefs: Prefs, wide: Int, tall: Int, camera: Rect?): Boolean = camera != null && (prefs.mode(wide, tall) ?: "island") == "island"
 
         /**
          * The camera's hole on a screen [wide] by [tall], upright: what the phone says of its own cut-out, or where
@@ -613,7 +632,7 @@ class MainActivity : Activity() {
         page.addView(text("HOW IT LOOKS", 12f, quiet, false).apply { letterSpacing = 0.08f; setPadding(dp(4), dp(24), 0, dp(4)) })
         val (wide, tall) = if (Build.VERSION.SDK_INT >= 30) windowManager.maximumWindowMetrics.bounds.let { it.width() to it.height() } else resources.displayMetrics.let { it.widthPixels to it.heightPixels }
         val camera = DockService.hole(this, prefs, wide, tall)
-        val beside = prefs.mode(wide, tall) == "island" && camera != null
+        val beside = DockService.docked(prefs, wide, tall, camera)
         if (camera == null) row("On this screen", "Floating") { Toast.makeText(this, "Where this screen's camera is, is not known", Toast.LENGTH_LONG).show() }
         else row("On this screen", if (beside) "Beside the camera" else "Floating") { change { prefs.mode(wide, tall, if (beside) "float" else "island") } }
         if (beside) {
