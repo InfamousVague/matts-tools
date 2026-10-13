@@ -128,11 +128,14 @@ class AppIcon extends StatelessWidget {
 
 /// A row of a list: something leading, two lines, something trailing.
 class Line extends StatelessWidget {
-  const Line({super.key, this.leading, required this.title, this.subtitle, this.trailing, this.onTap, this.under});
+  const Line({super.key, this.leading, required this.title, this.subtitle, this.trailing, this.onTap, this.under, this.subtitleLines = 2});
   final Widget? leading, trailing, under;
   final String title;
   final String? subtitle;
   final VoidCallback? onTap;
+
+  /// How many lines the second line may run to.
+  final int subtitleLines;
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +151,7 @@ class Line extends StatelessWidget {
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Txt(title, weight: 'medium', maxLines: 1),
-                if (subtitle != null && subtitle!.isNotEmpty) Txt(subtitle!, size: 'sm', color: 'text-muted', maxLines: 2),
+                if (subtitle != null && subtitle!.isNotEmpty) Txt(subtitle!, size: 'sm', color: 'text-muted', maxLines: subtitleLines),
               ]),
             ),
             if (trailing != null) Padding(padding: EdgeInsets.only(left: t.space(3)), child: trailing),
@@ -332,9 +335,12 @@ class GroupBars extends StatelessWidget {
 
 /// Thin bars along a line of time, with a rule across at [mark]; a bar over it is drawn in the danger colour.
 class Strip extends StatelessWidget {
-  const Strip({super.key, required this.values, required this.mark, this.height = 72, this.slots});
+  const Strip({super.key, required this.values, required this.mark, this.height = 72, this.slots, this.flag = true});
   final List<double> values;
   final double mark, height;
+
+  /// Whether a bar over [mark] is drawn in the danger colour: not where the line is only an average.
+  final bool flag;
 
   /// How many bars the width is cut into: more than there are values leaves the left empty, as a readout filling.
   final int? slots;
@@ -343,7 +349,7 @@ class Strip extends StatelessWidget {
   Widget build(BuildContext context) => SizedBox(
         height: height,
         width: double.infinity,
-        child: CustomPaint(painter: _Strip(values, mark, slots ?? values.length, ink(context, 'text'), ink(context, 'danger-solid'), ink(context, 'border-strong'))),
+        child: CustomPaint(painter: _Strip(values, mark, slots ?? values.length, ink(context, 'text'), ink(context, flag ? 'danger-solid' : 'text'), ink(context, 'border-strong'))),
       );
 }
 
@@ -374,5 +380,5 @@ class _Strip extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_Strip old) => old.values != values || old.mark != mark || old.plain != plain;
+  bool shouldRepaint(_Strip old) => old.values != values || old.mark != mark || old.plain != plain || old.hot != hot;
 }

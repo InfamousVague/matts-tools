@@ -69,6 +69,20 @@ class FramesPane extends StatelessWidget {
               ),
           ],
         ),
+        PaneSection(
+          title: 'Hardware',
+          footer: phone.batteryStats
+              ? null
+              : Text('The app\'s own share of the processor is the system\'s count, which Android gives only after a computer says so, once: adb shell pm grant ${phone.package} android.permission.BATTERY_STATS. Without it a run still has the whole phone\'s processor use.'),
+          children: [
+            SettingRow(
+              key: const ValueKey('frames.hardware'),
+              label: 'Hardware use',
+              hint: const Text('Reads the app\'s processor, memory, battery and data while measuring, and keeps them with each run. A reading this phone will not give is said so, never shown as nothing.'),
+              control: GlacierSwitch(checked: phone.hardware, ariaLabel: 'Hardware use', onCheckedChange: Phone.hardware),
+            ),
+          ],
+        ),
         if (!phone.secure)
           PaneSection(
             title: 'Developer switches',

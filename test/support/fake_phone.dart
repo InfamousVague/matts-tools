@@ -29,7 +29,7 @@ class FakePhone {
 
   final Map<String, Object?> frames = {
     'running': false, 'dump': true, 'usage': true, 'overlay': true, 'secure': true, 'hud': false, 'corner': 0, 'scenario': '', 'sessions': '/nowhere',
-    'package': 'com.mattssoftware.tools', 'animation': 1.0, 'awake': false, 'live': null, //
+    'package': 'com.mattssoftware.tools', 'animation': 1.0, 'awake': false, 'live': null, 'hardware': true, 'batteryStats': false, //
   };
 
   final List<Map<String, String>> apps = [
@@ -87,6 +87,8 @@ class FakePhone {
         frames['animation'] = call.arguments;
       case 'awake':
         frames['awake'] = call.arguments;
+      case 'hardware':
+        frames['hardware'] = call.arguments;
       case 'hud':
         frames['hud'] = !(frames['hud'] as bool);
         return frames['hud'] == true ? 'on' : 'off';

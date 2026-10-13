@@ -10,6 +10,8 @@ class PhoneState {
         overlay = m['overlay'] as bool,
         secure = m['secure'] as bool,
         hud = m['hud'] as bool,
+        hardware = (m['hardware'] as bool?) ?? true,
+        batteryStats = (m['batteryStats'] as bool?) ?? false,
         corner = m['corner'] as int,
         scenario = m['scenario'] as String,
         sessions = m['sessions'] as String,
@@ -19,6 +21,10 @@ class PhoneState {
         live = m['live'] == null ? null : Live(m['live'] as Map);
 
   final bool running, dump, usage, overlay, secure, hud, awake;
+
+  /// Whether a run also reads what the app costs the phone, and whether the phone lets Frames read another app's
+  /// processor time (android.permission.BATTERY_STATS, given from a computer).
+  final bool hardware, batteryStats;
   final int corner;
   final String scenario, sessions, package;
   final double animation;
@@ -62,6 +68,7 @@ class Phone {
   static Future<void> scenario(String words) => _do('scenario', words);
   static Future<void> corner(int at) => _do('corner', at);
   static Future<String?> hud() => _do<String>('hud');
+  static Future<void> hardware(bool on) => _do('hardware', on);
   static Future<void> animation(double scale) => _do('animation', scale);
   static Future<void> awake(bool on) => _do('awake', on);
   static Future<String?> diagnostics() => _channel.invokeMethod<String>('diagnostics');

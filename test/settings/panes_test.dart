@@ -193,6 +193,25 @@ void main() {
     await endApp(tester);
   });
 
+  testWidgets('Frames\' page: hardware use, on unless switched off, and how to let it read an app\'s own processor time', (tester) async {
+    await page(tester, 'frames');
+    expect(row('frames.hardware'), findsOneWidget);
+    expect(tester.widget<GlacierSwitch>(switchIn('frames.hardware')).checked, isTrue);
+    expect(find.textContaining('processor, memory, battery and data'), findsOneWidget);
+    expect(find.textContaining('pm grant com.mattssoftware.tools android.permission.BATTERY_STATS'), findsOneWidget);
+    await press(tester, switchIn('frames.hardware'));
+    expect(fake.of('hardware').last.arguments, false);
+    expect(tester.widget<GlacierSwitch>(switchIn('frames.hardware')).checked, isFalse);
+    await endApp(tester);
+
+    // With the permission given, the line that says how to give it is gone.
+    fake.frames['batteryStats'] = true;
+    fake.frames['hardware'] = true;
+    await page(tester, 'frames');
+    expect(find.textContaining('android.permission.BATTERY_STATS'), findsNothing);
+    await endApp(tester);
+  });
+
   testWidgets('Toasty\'s page: the degrees and whether the dock shows it, the dock\'s own two', (tester) async {
     await page(tester, 'toasty');
     expect(find.text('Now 31°C.'), findsOneWidget);

@@ -6,7 +6,7 @@ Small tools for an Android phone, kept in one app.
 | --- | --- |
 | **Dock** | One small pill over whatever is on screen: the phone's temperature, how long Amphetamine has been on, and the rate Frames is measuring. It floats where it is dragged, or sits beside the camera with the hole inside its frame. |
 | **Amphetamine** | Keeps the screen on from a quick settings tile, with a second tile for full brightness, a home screen widget, and ways to end a session by itself (low battery, unplugged, the phone folded shut). |
-| **Frames** | Measures frames a second and janky frames for the app in front, keeps the runs per app and build, ranks apps fastest to slowest, and sets two apps or two builds side by side. Exports JSON. |
+| **Frames** | Measures frames a second and janky frames for the app in front, and what the app costs the phone meanwhile (processor, memory, battery, data); keeps the runs per app and build, ranks apps, and sets two apps or two builds side by side. Exports JSON. |
 | **Toasty** | The phone's temperature, from its battery. |
 
 ## How it is put together
@@ -46,6 +46,16 @@ The app's first page walks through the permissions. Frames needs one more, given
 ```bash
 adb shell pm grant com.mattssoftware.tools android.permission.DUMP
 ```
+
+Frames' hardware use (`frames/Hardware.kt`, whose first comment says where each number comes from and what Android
+keeps closed) reads the whole phone's processor, the app's memory and data and the phone's battery draw with what
+is given above. The app's own share of the processor is the system's count, which wants one more, optional:
+
+```bash
+adb shell pm grant com.mattssoftware.tools android.permission.BATTERY_STATS
+```
+
+The reading of the phone's reports is tried on a computer: `cd android && ./gradlew :app:testDebugUnitTest`.
 
 ## Measuring an app screen by screen, from a computer
 

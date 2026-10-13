@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:glacier/glacier.dart';
 
 import 'data.dart';
+import 'hardware.dart';
 import 'home.dart';
 import 'phone.dart';
 import 'shell/app_shell.dart';
@@ -20,10 +21,15 @@ class Tiles extends StatelessWidget {
             padding: EdgeInsets.all(t.space(3)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Txt(name, size: 'xs', color: 'text-subtle'),
-              Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
-                Txt(value, size: 'xl', weight: 'semibold'),
-                Txt(unit, size: 'xs', color: 'text-muted'),
-              ]),
+              // Three figures and a unit are wider than a quarter of a phone's screen ("120 fps"): made smaller to fit.
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
+                  Txt(value, size: 'xl', weight: 'semibold'),
+                  Txt(unit, size: 'xs', color: 'text-muted'),
+                ]),
+              ),
             ]),
           ),
         );
@@ -69,11 +75,16 @@ class _AppScreenState extends State<AppScreen> {
             leading: AppIcon(app.pkg, name: app.title, size: 44),
             children: [
               Tiles(app.stats),
+              if (app.hardware.any) ...[
+                const Heading('Hardware, all runs'),
+                HardwareRows(sumRows(app.hardware, app.runs.length), missing: 'Not measured'),
+              ],
               Heading(app.builds.length > 1 ? 'Builds: tick two to compare' : 'Builds'),
               for (final build in app.builds)
                 Line(
+                  subtitleLines: 3,
                   title: build.title,
-                  subtitle: '${build.subtitle} · jank ${n1(build.jankLow)} to ${n1(build.jankHigh)}% across runs',
+                  subtitle: '${build.subtitle} · jank ${n1(build.jankLow)} to ${n1(build.jankHigh)}% across runs${briefHardware(build.hardware).isEmpty ? '' : '\n${briefHardware(build.hardware)}'}',
                   trailing: Row(mainAxisSize: MainAxisSize.min, children: [
                     Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                       Txt('${n0(build.stats.fps)} fps', weight: 'semibold'),
@@ -205,6 +216,7 @@ class RunScreen extends StatelessWidget {
           ),
           if (run.slowFrames.length > 30) Note('${run.slowFrames.length - 30} more in the export.'),
         ],
+        ...runHardware(context, run),
         const Heading('The phone meanwhile'),
         Panel(
           child: Column(children: [
@@ -285,6 +297,7 @@ class CompareScreen extends StatelessWidget {
             PairBars(name: 'Worst frame', a: x.worst, b: y.worst, unit: ' ms', higherIsBetter: false, digits: 0),
           ]),
         ),
+        ...compareHardware(context, a, b),
         const Heading('Frame times, ms'),
         Panel(child: GroupBars(labels: const ['Median', '90th', '95th', '99th'], a: [x.p50, x.p90, x.p95, x.p99], b: [y.p50, y.p90, y.p95, y.p99])),
         const Heading('Refreshes missed, % of frames'),

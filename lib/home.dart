@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:glacier/glacier.dart';
 
 import 'data.dart';
+import 'hardware.dart';
 import 'pages.dart';
 import 'phone.dart';
 import 'shell/app_shell.dart';
@@ -137,16 +138,19 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
 
   // ---- leaderboard ----
 
-  double _value(AppData a) => switch (_metric) { 'fps' => a.stats.fps, 'low' => a.stats.low1, _ => a.stats.jankPct };
+  /// What an app is ranked by. Null where it is a hardware reading no run of the app has: such an app is listed last.
+  double? _value(AppData a) => switch (_metric) { 'fps' => a.stats.fps, 'low' => a.stats.low1, 'jank' => a.stats.jankPct, _ => hardwareValue(a.hardware, _metric) };
 
   List<Widget> _board(List<AppData> apps) {
     final t = context.tokens;
     if (apps.isEmpty) return const [Note('Nothing measured yet. Switch measuring on, use an app for a while, and come back.')];
-    final higherIsBetter = _metric != 'jank';
-    final ranked = [...apps]..sort((a, b) => higherIsBetter ? _value(b).compareTo(_value(a)) : _value(a).compareTo(_value(b)));
-    final shown = _order == 'best' ? ranked : ranked.reversed.toList();
-    final most = ranked.map(_value).fold(0.0001, (a, b) => a > b ? a : b);
+    final hardware = hardwareMetrics.contains(_metric);
+    final higherIsBetter = _metric == 'fps' || _metric == 'low';
+    final ranked = [for (final a in apps) if (_value(a) != null) a]..sort((a, b) => higherIsBetter ? _value(b)!.compareTo(_value(a)!) : _value(a)!.compareTo(_value(b)!));
+    final shown = [...(_order == 'best' ? ranked : ranked.reversed), for (final a in apps) if (_value(a) == null) a];
+    final most = ranked.map((a) => _value(a)!).fold(0.0001, (a, b) => a > b ? a : b);
     final unit = _metric == 'jank' ? '%' : ' fps';
+    String words(double v) => hardware ? hardwareWords(_metric, v) : '${_metric == 'jank' ? n1(v) : n0(v)}$unit';
     final picked = [for (final p in _picks) apps.where((a) => a.pkg == p).firstOrNull].whereType<AppData>().toList();
     return [
       SizedBox(height: t.space(2)),
@@ -169,9 +173,24 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           size: GlacierSegmentedSize.sm,
           value: _order,
           onValueChange: (v) => setState(() => _order = v),
-          options: const [GlacierSegmentedOption(value: 'best', label: Text('Fastest')), GlacierSegmentedOption(value: 'worst', label: Text('Slowest'))],
+          options: [GlacierSegmentedOption(value: 'best', label: Text(hardware ? 'Least' : 'Fastest')), GlacierSegmentedOption(value: 'worst', label: Text(hardware ? 'Most' : 'Slowest'))],
         ),
       ]),
+      SizedBox(height: t.space(2)),
+      // What each app cost the phone: the same choice as the row above, so one of the two has nothing picked.
+      GlacierSegmentedControl(
+        key: const ValueKey('board.hardware'),
+        size: GlacierSegmentedSize.sm,
+        fullWidth: true,
+        value: _metric,
+        onValueChange: (v) => setState(() => _metric = v),
+        options: const [
+          GlacierSegmentedOption(value: 'cpu', label: Text('CPU')),
+          GlacierSegmentedOption(value: 'memory', label: Text('Memory')),
+          GlacierSegmentedOption(value: 'battery', label: Text('Battery')),
+          GlacierSegmentedOption(value: 'data', label: Text('Data')),
+        ],
+      ),
       SizedBox(height: t.space(3)),
       for (final (i, app) in shown.indexed)
         Line(
@@ -183,12 +202,14 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           title: app.title,
           subtitle: app.subtitle,
           trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-            Txt('${_metric == 'jank' ? n1(_value(app)) : n0(_value(app))}$unit', weight: 'semibold'),
+            if (_value(app) case final v?) Txt(words(v), weight: 'semibold') else const Txt('Not measured', size: 'xs', color: 'text-subtle'),
             Pick(on: _picks.contains(app.pkg), letter: _picks.indexOf(app.pkg) == 0 ? 'A' : 'B', onTap: () => setState(() => _pick(app.pkg))),
           ]),
-          under: GlacierProgressBar(
+          under: _value(app) == null
+              ? null
+              : GlacierProgressBar(
             size: GlacierProgressBarSize.sm,
-            value: _value(app) / most * 100,
+            value: _value(app)! / most * 100,
             tone: switch (toneOf(app.stats.jankPct)) { GlacierPillTone.success => GlacierProgressBarTone.success, GlacierPillTone.warning => GlacierProgressBarTone.warning, _ => GlacierProgressBarTone.danger },
             ariaLabel: app.title,
           ),
@@ -200,7 +221,9 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
               ? Btn('Compare ${picked[0].title} with ${picked[1].title}', kind: BtnKind.solid, onPressed: () => open(context, CompareScreen(a: picked[0], b: picked[1]), place: 'frames/compare:${picked[0].pkg}:${picked[1].pkg}'))
               : Note(picked.isEmpty ? 'Tick two apps to put them side by side.' : 'Tick one more to compare with ${picked[0].title}.'),
         ),
-      const Note('Every run of an app counts. The bar is the app\'s share of the largest value; its colour is how janky the app is.'),
+      Note(hardware
+          ? '${hardwareNotes[_metric]} Over the runs that measured it; an app with none is listed last. The bar\'s colour is how janky the app is.'
+          : 'Every run of an app counts. The bar is the app\'s share of the largest value; its colour is how janky the app is.'),
     ];
   }
 
@@ -250,7 +273,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       ),
       Line(
         title: 'Frames\' settings',
-        subtitle: 'The scenario, the readout over the app, the developer switches',
+        subtitle: 'The scenario, the readout over the app, hardware use, the developer switches',
         onTap: () => shell.go(settingsPlaceOf('frames')),
       ),
       const Heading('More'),
