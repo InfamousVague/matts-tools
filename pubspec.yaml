@@ -19,6 +19,9 @@ dev_dependencies:
 
 flutter:
   uses-material-design: false
+  assets:
+    - assets/css/ink.css
+    - assets/css/app.css
   fonts:
     - family: Inter Variable
       fonts:
