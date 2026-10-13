@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:glacier/glacier.dart';
 
 import 'phone.dart';
+import 'shell/app_shell.dart';
 
 /// The app's own parts, made of the kit's tokens and its press: what the kit has no component for yet (a card, a
 /// button, a row, a chart).
@@ -199,30 +200,20 @@ class Screen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    final back = Navigator.of(context).canPop();
+    // Under the app's bar (shell/top_bar.dart), which is also the way back: the page scrolls beneath its glass.
+    final first = AppShell.maybeOf(context)?.canBack == false;
     return ColoredBox(
       color: ink(context, 'bg'),
       child: SafeArea(
+        top: false,
         child: ListView(
-          padding: EdgeInsets.fromLTRB(t.space(4), t.space(4), t.space(4), t.space(12)),
+          padding: EdgeInsets.fromLTRB(t.space(4), t.len('app-safe-top') + t.space(3), t.space(4), t.space(12)),
           children: [
             Row(children: [
-              if (back)
-                GlacierPressable(
-                  onPressed: () => Navigator.of(context).maybePop(),
-                  semanticLabel: 'Back',
-                  builder: (context, state) => Container(
-                    width: 40,
-                    height: 40,
-                    margin: EdgeInsets.only(right: t.space(3)),
-                    decoration: BoxDecoration(shape: BoxShape.circle, color: ink(context, state.pressed ? 'surface-sunken' : 'surface-raised'), border: Border.all(color: ink(context, 'border-subtle'))),
-                    child: CustomPaint(painter: _Chevron(ink(context, 'text'))),
-                  ),
-                ),
               if (leading != null) Padding(padding: EdgeInsets.only(right: t.space(3)), child: leading),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Txt(title, size: back ? 'xl' : '3xl', weight: 'semibold', maxLines: 1),
+                  Txt(title, size: first ? '3xl' : '2xl', weight: 'semibold', maxLines: 1),
                   if (subtitle != null) Txt(subtitle!, size: 'sm', color: 'text-muted', maxLines: 1),
                 ]),
               ),
@@ -237,34 +228,9 @@ class Screen extends StatelessWidget {
   }
 }
 
-class _Chevron extends CustomPainter {
-  _Chevron(this.color);
-  final Color color;
-  @override
-  void paint(Canvas canvas, Size size) {
-    final pen = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    final c = size.center(Offset.zero);
-    canvas.drawPath(Path()..moveTo(c.dx + 3, c.dy - 7)..lineTo(c.dx - 4, c.dy)..lineTo(c.dx + 3, c.dy + 7), pen);
-  }
-
-  @override
-  bool shouldRepaint(_Chevron old) => old.color != color;
-}
-
-void open(BuildContext context, Widget page) => Navigator.of(context).push(PageRouteBuilder<void>(
-      pageBuilder: (_, _, _) => page,
-      transitionDuration: const Duration(milliseconds: 220),
-      reverseTransitionDuration: const Duration(milliseconds: 180),
-      transitionsBuilder: (_, animation, _, child) => FadeTransition(
-        opacity: animation,
-        child: SlideTransition(position: Tween(begin: const Offset(0.04, 0), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)), child: child),
-      ),
-    ));
+/// Goes to a page of one thing (an app's runs, a run, two apps side by side), kept by the shell under [place] so
+/// the bar's arrows can come back to it.
+void open(BuildContext context, Widget page, {required String place}) => AppShell.of(context).show(place, page);
 
 void say(BuildContext context, String words) => GlacierToast.of(context).toast(message: Text(words));
 

@@ -2,8 +2,6 @@ package com.mattssoftware.dock
 
 import com.mattssoftware.tools.R
 
-import android.Manifest
-import android.app.Activity
 import android.app.Dialog
 import android.app.Notification
 import android.app.NotificationChannel
@@ -14,17 +12,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.content.res.Configuration
 import android.graphics.Rect
-import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.hardware.display.DisplayManager
-import android.net.Uri
 import android.os.BatteryManager
 import android.os.Build
-import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.IBinder
@@ -42,7 +36,6 @@ import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import java.util.Locale
 import kotlin.math.hypot
 import kotlin.math.roundToInt
@@ -211,7 +204,7 @@ class DockService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (!prefs.on || !Settings.canDrawOverlays(this)) { hide(); stopForeground(STOP_FOREGROUND_REMOVE); stopSelf(); return START_NOT_STICKY }
-        val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
+        val open = PendingIntent.getActivity(this, 0, com.mattssoftware.tools.Shell.intent(this, "settings/dock"), PendingIntent.FLAG_IMMUTABLE)
         // Dated long ago, so that among the status bar's icons, newest first, it is the last.
         val note = Notification.Builder(this, "dock").setSmallIcon(R.drawable.ic_dock).setContentTitle("Matt's Software Dock")
             .setContentText("Showing. Tap to change what is in it.").setOngoing(true).setShowWhen(false)
@@ -430,12 +423,12 @@ class DockService : Service() {
         if (brand?.let { under(it) } == true) { prefs.collapsed = !prefs.collapsed; draw(); return }
         when (parts.entries.firstOrNull { under(it.value.first) }?.key) {
             "awake" -> work.post { Sources.toggleAwake(this); main.postDelayed({ work.post { read() } }, 400L) }
-            "frames" -> open(com.mattssoftware.frames.MainActivity::class.java)
-            "heat" -> open(com.mattssoftware.tools.ToastyActivity::class.java)
+            "frames" -> open("frames")
+            "heat" -> open("toasty")
         }
     }
 
-    private fun open(page: Class<*>) { runCatching { startActivity(Intent(this, page).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } }
+    private fun open(page: String) { runCatching { startActivity(com.mattssoftware.tools.Shell.intent(this, page).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } }
 
     // ---- what it says ----
 
@@ -587,96 +580,4 @@ class Glass(private val radius: Float, private val fill: Int, private val line: 
 
 class Boot : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) { runCatching { DockService.apply(context) } }
-}
-
-/** The one screen: the dock on or off, and what is in it. */
-class MainActivity : Activity() {
-    private val prefs by lazy { Prefs(this) }
-    private lateinit var page: LinearLayout
-    private var asking = false
-    private val paper = 0xFFF5F5F5.toInt(); private val quiet = 0xFF9A9A9A.toInt(); private val card = 0xFF171717.toInt()
-    private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
-
-    override fun onCreate(state: Bundle?) {
-        super.onCreate(state)
-        page = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(28), dp(20), dp(40)) }
-        setContentView(android.widget.ScrollView(this).apply { fitsSystemWindows = true; addView(page) })
-        if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // Back from the setting it sent them to: it is on, as they asked.
-        if (asking) { asking = false; if (Settings.canDrawOverlays(this)) prefs.on = true }
-        DockService.apply(this)
-        draw()
-    }
-
-    private fun change(set: () -> Unit) { set(); DockService.apply(this); draw() }
-
-    private fun draw() {
-        page.removeAllViews()
-        page.addView(text("Dock", 28f, paper, true).apply { setPadding(dp(4), 0, 0, dp(12)) })
-        val allowed = Settings.canDrawOverlays(this)
-        row("Show the dock", if (prefs.on && allowed) "On" else "Off") {
-            if (prefs.on && allowed) change { prefs.on = false }
-            else if (allowed) change { prefs.on = true }
-            else {
-                // Asked for at once, and on when they come back.
-                asking = true
-                Toast.makeText(this, "Allow the dock to display over other apps", Toast.LENGTH_LONG).show()
-                runCatching { startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))) }
-                    .onFailure { startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)) }
-            }
-        }
-        page.addView(text("HOW IT LOOKS", 12f, quiet, false).apply { letterSpacing = 0.08f; setPadding(dp(4), dp(24), 0, dp(4)) })
-        val (wide, tall) = if (Build.VERSION.SDK_INT >= 30) windowManager.maximumWindowMetrics.bounds.let { it.width() to it.height() } else resources.displayMetrics.let { it.widthPixels to it.heightPixels }
-        val camera = DockService.hole(this, prefs, wide, tall)
-        val beside = DockService.docked(prefs, wide, tall, camera)
-        if (camera == null) row("On this screen", "Floating") { Toast.makeText(this, "Where this screen's camera is, is not known", Toast.LENGTH_LONG).show() }
-        else row("On this screen", if (beside) "Beside the camera" else "Floating") { change { prefs.mode(wide, tall, if (beside) "float" else "island") } }
-        if (beside) {
-            row("Taps beside the camera", if (DockAccess.instance != null) "On" else "Off: needs Accessibility") {
-                Toast.makeText(this, "Switch on Matt's Tools under Installed apps", Toast.LENGTH_LONG).show()
-                runCatching { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
-            }
-            val side = DockService.side(prefs, wide, tall, camera!!)
-            row("Its parts", mapOf("left" to "Left of the camera", "right" to "Right of the camera", "both" to "Both sides, camera in the middle")[side] ?: side) {
-                change { prefs.side(wide, tall, mapOf("left" to "right", "right" to "both", "both" to "left")[side] ?: "left") }
-            }
-            // Lining the frame up with the hole: the arrows move where the hole is taken to be, a pixel or five at a time.
-            val (dx, dy, grow) = prefs.nudge(wide, tall)
-            val keys = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-            for ((label, step) in listOf("←" to Triple(-3, 0, 0), "→" to Triple(3, 0, 0), "↑" to Triple(0, -3, 0), "↓" to Triple(0, 3, 0), "−" to Triple(0, 0, -2), "+" to Triple(0, 0, 2)))
-                keys.addView(text(label, 20f, paper, true).apply {
-                    gravity = Gravity.CENTER; background = GradientDrawable().apply { cornerRadius = dp(14).toFloat(); setColor(card) }; setPadding(0, dp(12), 0, dp(12))
-                    setOnClickListener { change { prefs.nudge(wide, tall, dx + step.first, dy + step.second, (grow + step.third).coerceAtLeast(-20)) } }
-                }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = dp(6) })
-            page.addView(keys, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(8) })
-            page.addView(text("Move the frame until the camera sits in the middle of its end. Camera taken to be at ${camera.left}, ${camera.top} to ${camera.right}, ${camera.bottom}" + (if (Phones.hole(wide, tall)?.measured == false && dx == 0 && dy == 0) ": a first guess for this screen, which does not say where its camera is." else "."), 13f, quiet, false).apply { setPadding(dp(4), dp(8), dp(4), 0) })
-        } else {
-            row("Direction", if (prefs.vertical) "Down" else "Across") { change { prefs.vertical = !prefs.vertical } }
-            row("Blur what is behind it", if (prefs.blur) "On" else "Off") { change { prefs.blur = !prefs.blur } }
-        }
-        page.addView(text("IN IT", 12f, quiet, false).apply { letterSpacing = 0.08f; setPadding(dp(4), dp(24), 0, dp(4)) })
-        row("Temperature", if (prefs.heat) "On" else "Off") { change { prefs.heat = !prefs.heat } }
-        row("Degrees", if (prefs.fahrenheit) "Fahrenheit" else "Celsius") { change { prefs.fahrenheit = !prefs.fahrenheit } }
-        row("Time awake, from Amphetamine", if (prefs.awake) "On" else "Off") { change { prefs.awake = !prefs.awake } }
-        row("Rate, from Frames while it measures", if (prefs.frames) "On" else "Off") { change { prefs.frames = !prefs.frames } }
-        page.addView(text("Floating, drag the dock to wherever you want it; it stays there. Each screen of a folding phone keeps its own place and its own look, so set the other one with the phone the other way. A tap on Matt's Software's mark folds it down to the mark, and another opens it. A tap on the pill switches Amphetamine on or off. A tap on the flame opens this page.\n\nThe temperature is the battery's, the one reading Android gives every app.", 13f, quiet, false).apply { setPadding(dp(4), dp(16), dp(4), 0) })
-    }
-
-    private fun text(words: String, size: Float, color: Int, bold: Boolean) = TextView(this).apply {
-        text = words; textSize = size; setTextColor(color); if (bold) typeface = com.mattssoftware.tools.Ink.bold(context); setLineSpacing(0f, 1.2f)
-    }
-
-    private fun row(head: String, value: String, press: () -> Unit) {
-        val line = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
-            background = GradientDrawable().apply { cornerRadius = dp(18).toFloat(); setColor(card) }; setPadding(dp(18), dp(18), dp(18), dp(18)); setOnClickListener { press() }
-        }
-        line.addView(text(head, 16f, paper, false), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-        line.addView(text(value, 15f, quiet, false))
-        page.addView(line, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(8) })
-    }
 }

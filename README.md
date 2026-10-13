@@ -12,8 +12,16 @@ Small tools for an Android phone, kept in one app.
 ## How it is put together
 
 Each tool was an app of its own and keeps its own package under `android/app/src/main/kotlin/com/mattssoftware/`:
-`dock`, `amphetamine`, `frames`, and `tools` (the page of tools and the setting-up). Frames' screens are Flutter,
-drawn with the Glacier kit (`lib/`, `packages/glacier`); the rest is Kotlin with no libraries.
+`dock`, `amphetamine`, `frames`, and `tools` (the app's one activity and the setting-up). What each tool does is
+Kotlin with no libraries; every page is Flutter, drawn with the Glacier kit (`lib/`, `packages/glacier`).
+
+The pages share one frame (`lib/shell/app_shell.dart`): a bar over each with home, back and forward through where
+you have been, and the Settings cog, as Ghost.md has it. Android's back does what the back arrow does. Settings
+(`lib/settings/`) is Ghost.md's settings screen and its kit of cards and rows, copied, with a page for each tool and
+About; every setting of every tool is a row there. A row reads and writes the tool's own preferences through the
+activity (`tools/Shell.kt`: `tools` says what they stand at, `set` changes one the way the tool itself would), so a
+service already running takes a change up at once. A tile held down, the dock's notification and a tap on the dock
+open the app at the right page (`Shell.intent`).
 
 The dock beside the camera is drawn through an accessibility service (`dock/DockAccess.kt`), because the status bar
 takes every touch on its strip from a window drawn over apps and an accessibility service's window is the one kind

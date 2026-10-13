@@ -7,6 +7,7 @@ import 'package:glacier/glacier.dart';
 import 'data.dart';
 import 'pages.dart';
 import 'phone.dart';
+import 'shell/app_shell.dart';
 import 'ui.dart';
 
 const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -131,7 +132,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         SizedBox(height: context.tokens.space(3)),
         Line(title: 'Read frame timings', subtitle: phone.dump ? 'Allowed' : 'Not yet: the first command', trailing: GlacierPill(tone: phone.dump ? GlacierPillTone.success : GlacierPillTone.warning, child: Text(phone.dump ? 'Yes' : 'No'))),
         Line(title: 'Know which app is in front', subtitle: phone.usage ? 'Allowed' : 'Not yet: the second command', trailing: GlacierPill(tone: phone.usage ? GlacierPillTone.success : GlacierPillTone.warning, child: Text(phone.usage ? 'Yes' : 'No'))),
-        Btn('Diagnostics', onPressed: () => open(context, const DiagScreen())),
+        Btn('Diagnostics', onPressed: () => AppShell.of(context).go(diagnosticsPlace)),
       ]);
 
   // ---- leaderboard ----
@@ -174,7 +175,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       SizedBox(height: t.space(3)),
       for (final (i, app) in shown.indexed)
         Line(
-          onTap: () => open(context, AppScreen(pkg: app.pkg)),
+          onTap: () => open(context, AppScreen(pkg: app.pkg), place: appPlace(app.pkg)),
           leading: Row(mainAxisSize: MainAxisSize.min, children: [
             SizedBox(width: 22, child: Txt('${i + 1}', size: 'sm', weight: 'semibold', color: 'text-subtle')),
             AppIcon(app.pkg, name: app.title),
@@ -196,7 +197,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         Padding(
           padding: EdgeInsets.only(top: t.space(2)),
           child: picked.length == 2
-              ? Btn('Compare ${picked[0].title} with ${picked[1].title}', kind: BtnKind.solid, onPressed: () => open(context, CompareScreen(a: picked[0], b: picked[1])))
+              ? Btn('Compare ${picked[0].title} with ${picked[1].title}', kind: BtnKind.solid, onPressed: () => open(context, CompareScreen(a: picked[0], b: picked[1]), place: 'frames/compare:${picked[0].pkg}:${picked[1].pkg}'))
               : Note(picked.isEmpty ? 'Tick two apps to put them side by side.' : 'Tick one more to compare with ${picked[0].title}.'),
         ),
       const Note('Every run of an app counts. The bar is the app\'s share of the largest value; its colour is how janky the app is.'),
@@ -221,7 +222,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       final d = dayOf(run.when);
       if (d != day) out.add(Heading(day = d));
       out.add(Line(
-        onTap: () => open(context, RunScreen(run: run)),
+        onTap: () => open(context, RunScreen(run: run), place: runPlace(run)),
         leading: AppIcon(run.pkg, name: run.label),
         title: run.label.isEmpty ? run.pkg : run.label,
         subtitle: '${clockOf(run.when)} · ${run.buildName} · ${run.lastedSeconds}s',
@@ -236,80 +237,24 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
 
   // ---- tools ----
 
+  /// What was this list's own to set (the scenario, the readout over the app, the developer switches) is Frames'
+  /// page of Settings now; the scenario is still said here, since it is changed between one run and the next.
   List<Widget> _tools(PhoneState phone, List<AppData> apps) {
-    final t = context.tokens;
+    final shell = AppShell.of(context);
     return [
-      const Heading('Scenario'),
-      GlacierInput(
-        defaultValue: phone.scenario,
-        placeholder: 'What you are about to do, e.g. scroll the feed',
-        onChange: Phone.scenario,
+      const Heading('Settings'),
+      Line(
+        title: 'Scenario',
+        subtitle: phone.scenario.isEmpty ? 'None. Name what you are about to do, to compare like with like.' : phone.scenario,
+        onTap: () => shell.go(settingsPlaceOf('frames')),
       ),
-      const Note('Runs are grouped by app, build and scenario. Do the same thing on each build to compare like with like.'),
-      const Heading('Readout over the app'),
-      Panel(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Row(children: [
-            const Expanded(child: Txt('Show the rate, the jank and the last frames in a corner of whatever is being measured', size: 'sm', color: 'text-muted')),
-            SizedBox(width: t.space(3)),
-            GlacierSwitch(
-              checked: phone.hud,
-              ariaLabel: 'Readout over the app',
-              onCheckedChange: (_) async {
-                if (await Phone.hud() == 'asked' && mounted) say(context, 'Allow Frames to display over other apps');
-              },
-            ),
-          ]),
-          if (phone.hud)
-            Padding(
-              padding: EdgeInsets.only(top: t.space(3)),
-              child: GlacierSegmentedControl(
-                size: GlacierSegmentedSize.sm,
-                fullWidth: true,
-                value: '${phone.corner}',
-                onValueChange: (v) => Phone.corner(int.parse(v)),
-                options: const [
-                  GlacierSegmentedOption(value: '0', label: Text('Top left')),
-                  GlacierSegmentedOption(value: '1', label: Text('Top right')),
-                  GlacierSegmentedOption(value: '3', label: Text('Low left')),
-                  GlacierSegmentedOption(value: '2', label: Text('Low right')),
-                ],
-              ),
-            ),
-        ]),
+      Line(
+        title: 'Frames\' settings',
+        subtitle: 'The scenario, the readout over the app, the developer switches',
+        onTap: () => shell.go(settingsPlaceOf('frames')),
       ),
-      const Heading('Developer switches'),
-      if (!phone.secure) ...[
-        const Note('These change the phone\'s own developer settings, which Android allows only after a computer says so, once:'),
-        SizedBox(height: t.space(2)),
-        Panel(child: Txt('adb shell pm grant ${phone.package} android.permission.WRITE_SECURE_SETTINGS', size: 'sm', mono: true)),
-      ] else
-        Panel(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            const Txt('Animation speed', weight: 'medium'),
-            SizedBox(height: t.space(2)),
-            GlacierSegmentedControl(
-              size: GlacierSegmentedSize.sm,
-              fullWidth: true,
-              value: '${phone.animation}',
-              onValueChange: (v) => Phone.animation(double.parse(v)),
-              options: const [
-                GlacierSegmentedOption(value: '0.0', label: Text('Off')),
-                GlacierSegmentedOption(value: '0.5', label: Text('2x fast')),
-                GlacierSegmentedOption(value: '1.0', label: Text('Normal')),
-                GlacierSegmentedOption(value: '5.0', label: Text('5x slow')),
-                GlacierSegmentedOption(value: '10.0', label: Text('10x slow')),
-              ],
-            ),
-            SizedBox(height: t.space(4)),
-            Row(children: [
-              const Expanded(child: Txt('Stay awake while charging', weight: 'medium')),
-              GlacierSwitch(checked: phone.awake, ariaLabel: 'Stay awake while charging', onCheckedChange: Phone.awake),
-            ]),
-          ]),
-        ),
       const Heading('More'),
-      Line(title: 'Diagnostics', subtitle: 'What Frames can read on this phone, and what it did lately', onTap: () => open(context, const DiagScreen())),
+      Line(title: 'Diagnostics', subtitle: 'What Frames can read on this phone, and what it did lately', onTap: () => shell.go(diagnosticsPlace)),
       if (apps.isNotEmpty)
         Btn('Export everything as JSON', onPressed: () async {
           final done = await Phone.export();

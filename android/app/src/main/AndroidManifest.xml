@@ -18,13 +18,15 @@
     <application android:name="com.mattssoftware.tools.App" android:allowBackup="false" android:icon="@mipmap/ic_launcher"
         android:label="Matt's Tools" android:theme="@style/AppTheme">
 
-        <!-- ==== Matt's Tools: the page of tools, and the setting-up ==== -->
-        <activity android:name="com.mattssoftware.tools.HomeActivity" android:exported="true">
+        <!-- ==== Matt's Tools: the app's one activity, whose pages are Flutter's (lib/), and the setting-up ==== -->
+        <activity android:name="com.mattssoftware.tools.HomeActivity" android:exported="true" android:launchMode="singleTop" android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <!-- A long press on any of the tiles comes here. -->
+            <!-- A long press on any of the tiles comes here, and lands on that tile's page of Settings. -->
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
             </intent-filter>
@@ -36,10 +38,8 @@
             </intent-filter>
         </receiver>
         <activity android:name="com.mattssoftware.tools.SetupActivity" android:exported="false" />
-        <activity android:name="com.mattssoftware.tools.ToastyActivity" android:exported="false" />
 
         <!-- ==== The dock ==== -->
-        <activity android:name="com.mattssoftware.dock.MainActivity" android:exported="false" />
         <service android:name="com.mattssoftware.dock.DockService" android:exported="false" android:foregroundServiceType="specialUse">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Keeps a small floating readout on screen (the phone's temperature and the state of the app's own tools) while the person has it switched on." />
@@ -57,7 +57,6 @@
         </receiver>
 
         <!-- ==== Amphetamine ==== -->
-        <activity android:name="com.mattssoftware.amphetamine.MainActivity" android:exported="false" />
         <service android:name="com.mattssoftware.amphetamine.AwakeService" android:exported="false" android:foregroundServiceType="specialUse">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Keeps the screen on while the person has switched a session on from the quick settings tile." />
@@ -85,10 +84,7 @@
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/awake_widget" />
         </receiver>
 
-        <!-- ==== Frames: its screens are Flutter's (lib/) ==== -->
-        <activity android:name="com.mattssoftware.frames.MainActivity" android:exported="false" android:launchMode="singleTop" android:hardwareAccelerated="true"
-            android:windowSoftInputMode="adjustResize"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode" />
+        <!-- ==== Frames ==== -->
         <!-- Startable from a computer (adb holds DUMP; no other app does): `am start-foreground-service -a on`. -->
         <service android:name="com.mattssoftware.frames.ProfilerService" android:exported="true" android:permission="android.permission.DUMP"
             android:foregroundServiceType="specialUse">

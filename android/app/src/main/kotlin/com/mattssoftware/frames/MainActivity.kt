@@ -1,13 +1,10 @@
 package com.mattssoftware.frames
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.net.Uri
 import android.os.Build
-import android.os.Bundle
 import android.provider.Settings
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -20,21 +17,19 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * The app's screens are Flutter's (lib/), drawn with the Glacier kit. This is their door to the phone: whether
+ * The app's screens are Flutter's (lib/), drawn with the Glacier kit. This is Frames' part of their door to the
+ * phone (the activity itself is [com.mattssoftware.tools.HomeActivity], which adds the other tools' settings): whether
  * measuring is on and what it reads now, the switches, an app's icon, the export, and the diagnostics. The runs
  * themselves Flutter reads from their files (Store).
  */
-class MainActivity : FlutterActivity() {
+open class MainActivity : FlutterActivity() {
+    /** The channel itself, once the engine is up: for telling Flutter a page was asked for (tools/Shell.kt). */
+    protected var door: MethodChannel? = null
     private val store by lazy { Store(this) }
     private val prefs by lazy { Prefs(this) }
     private var exporting: List<Session> = emptyList()
     private var exported: MethodChannel.Result? = null
     private var grantingHud = false
-
-    override fun onCreate(state: Bundle?) {
-        super.onCreate(state)
-        if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
-    }
 
     override fun onResume() {
         super.onResume()
@@ -44,12 +39,12 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "frames").setMethodCallHandler { call, result ->
-            runCatching { answer(call, result) }.onFailure { result.error("frames", it.message, null) }
+        door = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "frames").also {
+            it.setMethodCallHandler { call, result -> runCatching { answer(call, result) }.onFailure { result.error("frames", it.message, null) } }
         }
     }
 
-    private fun answer(call: MethodCall, result: MethodChannel.Result) {
+    protected open fun answer(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "state" -> result.success(state())
             "toggle" -> { ProfilerService.set(this, !ProfilerService.running); result.success(null) }

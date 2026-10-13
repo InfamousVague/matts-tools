@@ -27,9 +27,9 @@ class AwakeTile : TileService() {
         val prefs = Prefs(this)
         val on = !prefs.on
         // With neither permission there is nothing to hold the screen with: the setting is opened at once, and the
-        // session starts by itself as the person comes back from allowing it (MainActivity, "grant").
+        // session starts by itself as the person comes back from allowing it (tools/Shell.kt, "grant").
         if (on && !Settings.canDrawOverlays(this) && !Settings.System.canWrite(this)) {
-            val open = Intent(this, MainActivity::class.java).putExtra("grant", true)
+            val open = com.mattssoftware.tools.Shell.intent(this, "amphetamine").putExtra("grant", true)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
             if (android.os.Build.VERSION.SDK_INT >= 34) startActivityAndCollapse(PendingIntent.getActivity(this, 9, open, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT))
             else @Suppress("DEPRECATION") startActivityAndCollapse(open)

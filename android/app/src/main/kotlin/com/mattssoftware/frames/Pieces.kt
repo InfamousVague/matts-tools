@@ -50,7 +50,7 @@ class FramesTile : TileService() {
     override fun onStartListening() = draw()
     override fun onClick() {
         if (!Access.ready(this)) {
-            val open = Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            val open = com.mattssoftware.tools.Shell.intent(this, "frames").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             if (android.os.Build.VERSION.SDK_INT >= 34) startActivityAndCollapse(PendingIntent.getActivity(this, 9, open, PendingIntent.FLAG_IMMUTABLE))
             else @Suppress("DEPRECATION") startActivityAndCollapse(open)
             return
@@ -74,7 +74,7 @@ class FramesTile : TileService() {
 class Toggle : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (!ProfilerService.running && !Access.ready(context)) {
-            context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); return
+            context.startActivity(com.mattssoftware.tools.Shell.intent(context, "frames").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); return
         }
         ProfilerService.set(context, !ProfilerService.running)
     }

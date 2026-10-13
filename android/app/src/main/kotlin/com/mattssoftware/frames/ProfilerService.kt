@@ -213,7 +213,7 @@ class ProfilerService : Service() {
     }
 
     private fun show(title: String, now: Live?) {
-        val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
+        val open = PendingIntent.getActivity(this, 0, com.mattssoftware.tools.Shell.intent(this, "frames"), PendingIntent.FLAG_IMMUTABLE)
         val builder = Notification.Builder(this, "measuring").setSmallIcon(R.drawable.ic_frames).setOngoing(true).setOnlyAlertOnce(true)
             .setContentIntent(open).setContentTitle(if (now == null) "Frames is measuring" else "$title · ${now.fps} fps")
             .setContentText(now?.let { "${"%.1f".format(it.jankPct)}% janky of ${it.frames} frames at ${it.hz.toInt()} Hz" } ?: title)

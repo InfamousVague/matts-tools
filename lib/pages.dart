@@ -4,6 +4,7 @@ import 'package:glacier/glacier.dart';
 import 'data.dart';
 import 'home.dart';
 import 'phone.dart';
+import 'shell/app_shell.dart';
 import 'ui.dart';
 
 /// Four numbers in a grid: what a run, a build or an app comes to at a glance.
@@ -37,6 +38,10 @@ class Tiles extends StatelessWidget {
     ]);
   }
 }
+
+/// A run's place in the app, and an app's.
+String runPlace(Run run) => 'frames/run:${run.pkg}:${run.when.millisecondsSinceEpoch}';
+String appPlace(String pkg) => 'frames/app:$pkg';
 
 // ---- one app ----
 
@@ -90,7 +95,7 @@ class _AppScreenState extends State<AppScreen> {
                       ),
                   ]),
                 ),
-              if (picked.length == 2) Btn('Compare the two builds', kind: BtnKind.solid, onPressed: () => open(context, CompareScreen(a: picked[0], b: picked[1], builds: true))),
+              if (picked.length == 2) Btn('Compare the two builds', kind: BtnKind.solid, onPressed: () => open(context, CompareScreen(a: picked[0], b: picked[1], builds: true), place: 'frames/builds:${picked[0].pkg}:${picked[0].title}:${picked[1].title}')),
               if (app.screens.isNotEmpty) ...[
                 const Heading('Screens, all runs'),
                 for (final s in app.screens.take(12))
@@ -99,7 +104,7 @@ class _AppScreenState extends State<AppScreen> {
               const Heading('Reports'),
               for (final run in app.runs.take(40))
                 Line(
-                  onTap: () => open(context, RunScreen(run: run)),
+                  onTap: () => open(context, RunScreen(run: run), place: runPlace(run)),
                   title: stamp(run.when),
                   subtitle: '${run.buildName} · ${run.lastedSeconds}s${run.thermalWorst >= 3 ? ' · throttled' : ''}',
                   trailing: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
@@ -116,7 +121,7 @@ class _AppScreenState extends State<AppScreen> {
               Btn(app.runs.length == 1 ? 'Delete this app\'s run' : 'Delete this app\'s ${app.runs.length} runs', kind: BtnKind.danger, onPressed: () async {
                 await Phone.delete(app.pkg);
                 await reload(Phone.state.value!.sessions);
-                if (context.mounted) Navigator.of(context).maybePop();
+                if (context.mounted) AppShell.of(context).leave();
               }),
             ],
           );
@@ -219,7 +224,7 @@ class RunScreen extends StatelessWidget {
         Btn('Delete this report', kind: BtnKind.danger, onPressed: () async {
           await Phone.delete(run.pkg, run.startedAt);
           await reload(Phone.state.value!.sessions);
-          if (context.mounted) Navigator.of(context).maybePop();
+          if (context.mounted) AppShell.of(context).leave();
         }),
       ],
     );

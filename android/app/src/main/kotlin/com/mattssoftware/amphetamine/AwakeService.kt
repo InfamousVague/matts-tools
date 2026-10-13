@@ -209,7 +209,7 @@ class AwakeService : Service() {
     // ---- what shows -------------------------------------------------------------------------------------------
 
     private fun notes() = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-    private fun open() = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
+    private fun open() = PendingIntent.getActivity(this, 0, com.mattssoftware.tools.Shell.intent(this, "amphetamine"), PendingIntent.FLAG_IMMUTABLE)
 
     private fun show() {
         val on = prefs.on

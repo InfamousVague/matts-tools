@@ -7,7 +7,6 @@ import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -19,22 +18,18 @@ import android.provider.Settings
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.widget.GridLayout
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import com.mattssoftware.amphetamine.AwakeStart
 import com.mattssoftware.dock.DockAccess
 import com.mattssoftware.dock.DockService
-import com.mattssoftware.dock.Sources
 import com.mattssoftware.frames.ProfilerService
-import kotlin.math.roundToInt
 
 /**
  * Matt's Tools: the dock, Amphetamine, Frames and Toasty in one app. Each was an app of its own and keeps its own
  * package here (`com.mattssoftware.dock`, `.amphetamine`, `.frames`); this package is what holds them together: the
- * start, the page of tools, and the setting-up.
+ * start, the app's one activity with every tool's settings behind it (Shell.kt), and the setting-up.
  */
 class App : Application() {
     override fun onCreate() {
@@ -125,59 +120,6 @@ abstract class Page : Activity() {
 }
 
 /**
- * The first page: the tools, as a home screen shows its apps, an icon and its name under it, four across and as many
- * down as there are. A tap opens the tool. The first time the app is opened it goes to the setting-up instead.
- */
-class HomeActivity : Page() {
-    private class Tool(val name: String, val icon: Int, val page: Class<*>)
-    private val tools = listOf(
-        Tool("Dock", R.drawable.ic_dock, com.mattssoftware.dock.MainActivity::class.java),
-        Tool("Amphetamine", R.drawable.ic_pill, com.mattssoftware.amphetamine.MainActivity::class.java),
-        Tool("Frames", R.drawable.ic_frames, com.mattssoftware.frames.MainActivity::class.java),
-        Tool("Toasty", R.drawable.ic_flame, ToastyActivity::class.java),
-    )
-    private val kept by lazy { getSharedPreferences("tools", Context.MODE_PRIVATE) }
-
-    override fun onCreate(state: Bundle?) {
-        super.onCreate(state)
-        if (!kept.getBoolean("setUp", false)) startActivity(Intent(this, SetupActivity::class.java))
-    }
-
-    override fun onResume() { super.onResume(); draw() }
-
-    private fun draw() {
-        page.removeAllViews()
-        val mark = getDrawable(R.drawable.brand)!!
-        page.addView(ImageView(this).apply { setImageDrawable(mark) }, LinearLayout.LayoutParams(dp(26) * mark.intrinsicWidth / mark.intrinsicHeight, dp(26)).apply { leftMargin = dp(4); bottomMargin = dp(14) })
-        title("Matt's Tools")
-        note("Small tools for the phone, kept in one place.")
-
-        val across = 4
-        val grid = GridLayout(this).apply { columnCount = across }
-        val wide = (resources.displayMetrics.widthPixels - dp(40)) / across
-        for (tool in tools) {
-            val cell = LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL; setPadding(0, dp(14), 0, dp(10))
-                setOnClickListener { startActivity(Intent(this@HomeActivity, tool.page)) }
-            }
-            // As a home screen draws an app: a rounded tile, its picture in the middle, its name under it.
-            val tile = android.widget.FrameLayout(this).apply {
-                background = GradientDrawable().apply { cornerRadius = dp(19).toFloat(); setColor(Ink.CARD); setStroke(1, Ink.LINE) }
-                addView(ImageView(context).apply { setImageResource(tool.icon); setColorFilter(Ink.PAPER) }, android.widget.FrameLayout.LayoutParams(dp(28), dp(28), Gravity.CENTER))
-            }
-            cell.addView(tile, LinearLayout.LayoutParams(dp(62), dp(62)))
-            cell.addView(text(tool.name, 12.5f).apply { gravity = Gravity.CENTER; maxLines = 1; setPadding(0, dp(8), 0, 0) }, LinearLayout.LayoutParams(wide, ViewGroup.LayoutParams.WRAP_CONTENT))
-            grid.addView(cell, GridLayout.LayoutParams().apply { width = wide; height = ViewGroup.LayoutParams.WRAP_CONTENT })
-        }
-        page.addView(grid, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(14) })
-
-        val missing = listOf(Granted.notifications(this), Granted.overlay(this), Granted.usage(this)).count { !it }
-        heading("Setting up")
-        row("Permissions", if (missing == 0) "All set" else "$missing to go") { startActivity(Intent(this, SetupActivity::class.java)) }
-    }
-}
-
-/**
  * The setting-up: one thing a page, in order, each with what it is for and a button that opens the phone's own
  * setting for it. Coming back with it given moves on by itself. Nothing here is needed to look round the app, so
  * every page can be passed over.
@@ -257,30 +199,5 @@ class SetupActivity : Page() {
         val last = at == steps.size - 1
         if (!done) button(step.button, true) { step.open(this) }
         button(if (last) "Finish" else if (done) "Next" else "Not now", done) { if (last) finishSetup() else { at += 1; draw() } }
-    }
-}
-
-/** Toasty: the phone's temperature, large, and how the dock shows it. */
-class ToastyActivity : Page() {
-    private val prefs by lazy { com.mattssoftware.dock.Prefs(this) }
-    private val battery = object : BroadcastReceiver() { override fun onReceive(c: Context, i: Intent) = draw() }
-
-    override fun onResume() { super.onResume(); registerReceiver(battery, IntentFilter(Intent.ACTION_BATTERY_CHANGED)); draw() }
-    override fun onPause() { unregisterReceiver(battery); super.onPause() }
-
-    private fun draw() {
-        page.removeAllViews()
-        title("Toasty")
-        val celsius = Sources.celsius(this)
-        val hero = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
-            background = GradientDrawable().apply { cornerRadius = dp(22).toFloat(); setColor(Ink.CARD); setStroke(1, Ink.LINE) }; setPadding(dp(22), dp(26), dp(22), dp(26))
-        }
-        hero.addView(ImageView(this).apply { setImageResource(R.drawable.ic_flame); setColorFilter(Ink.PAPER) }, LinearLayout.LayoutParams(dp(44), dp(44)))
-        hero.addView(text(if (celsius == null) "No reading" else if (prefs.fahrenheit) "${(celsius * 9f / 5f + 32f).roundToInt()}°F" else "${celsius.roundToInt()}°C", 44f, Ink.PAPER, 650).apply { setPadding(dp(14), 0, 0, 0) })
-        page.addView(hero, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(10) })
-        row("Degrees", if (prefs.fahrenheit) "Fahrenheit" else "Celsius") { prefs.fahrenheit = !prefs.fahrenheit; runCatching { DockService.apply(this) }; draw() }
-        row("In the dock", if (prefs.heat) "On" else "Off") { prefs.heat = !prefs.heat; runCatching { DockService.apply(this) }; draw() }
-        note("This is the battery's temperature, the one reading Android gives every app. It follows the whole phone, a little behind the processor.")
     }
 }
