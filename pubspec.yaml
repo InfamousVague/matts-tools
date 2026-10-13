@@ -1,7 +1,7 @@
 name: frames
 description: "Matt's Tools: a dock, Amphetamine, Frames and Toasty in one app."
 publish_to: 'none'
-version: 1.0.1+2
+version: 1.1.0+3
 
 environment:
   sdk: ^3.11.0
