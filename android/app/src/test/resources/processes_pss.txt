@@ -1,0 +1,46 @@
+ACTIVITY MANAGER RUNNING PROCESSES (dumpsys activity processes)
+  All known processes:
+  *APP* UID 10234 ProcessRecord{5b0b98d 5678:com.example.reader/u0a234}
+    user #0 uid=10234 gids={50234, 20234, 9997, 3003}
+    mRequiredAbi=arm64-v8a instructionSet=null
+    class=com.example.reader.App
+    dir=/data/app/~~Zq1==/com.example.reader-9x==/base.apk publicDir=/data/app/~~Zq1==/com.example.reader-9x==/base.apk data=/data/user/0/com.example.reader
+    packageList={com.example.reader}
+    compat={480dpi}
+    thread=android.app.IApplicationThread$Stub$Proxy@a1b2c3d
+    pid=5678
+    lastActivityTime=-1s204ms startUpTime=-2m31s77ms startElapsedTime=-2m31s77ms
+    startSeq=412
+    mountMode=DEFAULT
+    lastPssTime=-25s612ms pssProcState=2 pssStatType=0 nextPssTime=+34s388ms
+    lastPss=152MB lastSwapPss=3.1MB lastCachedPss=0.00 lastCachedSwapPss=0.00 lastRss=302MB
+    trimMemoryLevel=0
+    procStateMemTracker: best=1 (1=1 1.5x)
+    lastRequestedGc=-2m31s80ms lastLowMemory=-2m31s80ms reportLowMemory=false
+    currentHostingComponentTypes=0x1 historicalHostingComponentTypes=0x1
+    mCurProcState=2 mRepProcState=2 mSetProcState=2
+  *APP* UID 10234 ProcessRecord{c0ffee1 5701:com.example.reader:sync/u0a234}
+    user #0 uid=10234 gids={50234, 20234, 9997, 3003}
+    packageList={com.example.reader}
+    pid=5701
+    lastCpuTime=1840 timeUsed=+2s310ms
+    lastPssTime=-1m2s3ms pssProcState=10 pssStatType=1 nextPssTime=+9m0s0ms
+    lastPss=850KB lastSwapPss=0.00 lastCachedPss=0.00 lastCachedSwapPss=0.00 lastRss=9.4MB
+    trimMemoryLevel=0
+  *APP* UID 10234 ProcessRecord{dead001 0:com.example.reader:gone/u0a234}
+    user #0 uid=10234 gids={}
+    pid=0
+    lastPssTime=-- pssProcState=20 pssStatType=0 nextPssTime=--
+    lastPss=0.00 lastSwapPss=0.00 lastCachedPss=0.00 lastCachedSwapPss=0.00 lastRss=0.00
+
+  Isolated process list (sorted by uid):
+    Isolated #0: ProcessRecord{77aa001 5900:com.example.reader:sandboxed_process0/u0a234i17}
+
+  UID states:
+    UID u0a234: UidRecord{9d2e1f u0a234 TOP  procs:2 seq(1204,1203)}
+
+  Process LRU list (sorted by oom_adj, 71 total, non-act at 4, non-svc at 4):
+    Proc # 0: fg     T/A/TOP  LCMNFUA  t: 0 5678:com.example.reader/u0a234 (top-activity)
+
+  mPreviousProcess=ProcessRecord{1f00d00 4411:com.sec.android.app.launcher/u0a112}
+  mTotalMemory lastPss=1.9GB

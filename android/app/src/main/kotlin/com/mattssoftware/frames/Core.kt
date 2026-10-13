@@ -176,6 +176,8 @@ class Session(
     val events = JSONArray()
     /** The clock the compositor stamps frames with, as the run began. */
     var startNano = 0L
+    /** What the app cost the phone (Hardware.kt): written as the run closes. Null on a run from before it was kept. */
+    var hardware: JSONObject? = null
 
     fun add(frame: Frame, screen: String) {
         times.add(frame.totalMs)
@@ -206,6 +208,7 @@ class Session(
         }) } })
         put("slowFrames", events)
         put("seconds", seconds)
+        hardware?.let { put("hardware", it) }
         if (withFrames) put("frameMs", JSONArray().also { all -> times.forEach { all.put((it * 100).toInt() / 100.0) } })
     }
 
@@ -218,6 +221,7 @@ class Session(
             endedAt = o.optLong("endedAt", startedAt)
             startTempC = o.optDouble("startTempC", 0.0).toFloat(); endTempC = o.optDouble("endTempC", 0.0).toFloat()
             thermalWorst = o.optInt("thermalWorst")
+            hardware = o.optJSONObject("hardware")
             o.optJSONArray("seconds")?.let { for (i in 0 until it.length()) seconds.put(it.get(i)) }
             o.optJSONArray("slowFrames")?.let { for (i in 0 until it.length()) events.put(it.get(i)) }
             o.optJSONArray("screens")?.let { for (i in 0 until it.length()) { val s = it.getJSONObject(i); screens[s.optString("name")] = Screen().apply {
@@ -249,8 +253,8 @@ class Store(context: Context) {
 
     /** Everything, as one document a chart on a computer can read. */
     fun export(sessions: List<Session>, device: String): String = JSONObject().apply {
-        put("format", "frames/v1"); put("exportedAt", System.currentTimeMillis()); put("device", device)
-        put("notes", "Times are milliseconds. A frame time is the gap since the frame before reached the screen. Janky is a gap of 1.5 refresh periods or more (a missed refresh), slow 2.5 or more, frozen past 700 ms. fps counts only seconds in which frames were drawn. missedRefreshes counts frames by how many refreshes each missed. screens are the app's activities. slowFrames lists each slow or frozen frame: t is milliseconds into the run. In seconds: hz is the refresh rate, availMb the memory the phone had free, rxKb and txKb the whole phone's network traffic in that second, cpuFreqPct the cores' clock speed as a share of their fastest (not load), skinC, cpuC and gpuC the phone's own temperatures, thermal its throttling status from 0 to 6. A reading the phone would not give is left out.")
+        put("format", "frames/v2"); put("exportedAt", System.currentTimeMillis()); put("device", device)
+        put("notes", "Times are milliseconds. A frame time is the gap since the frame before reached the screen. Janky is a gap of 1.5 refresh periods or more (a missed refresh), slow 2.5 or more, frozen past 700 ms. fps counts only seconds in which frames were drawn. missedRefreshes counts frames by how many refreshes each missed. screens are the app's activities. slowFrames lists each slow or frozen frame: t is milliseconds into the run. In seconds: hz is the refresh rate, availMb the memory the phone had free, rxKb and txKb the whole phone's network traffic in that second, cpuFreqPct the cores' clock speed as a share of their fastest (not load), skinC, cpuC and gpuC the phone's own temperatures, thermal its throttling status from 0 to 6. A reading the phone would not give is left out. Since frames/v2 a session may have hardware (absent on older runs; {off: true} where it was switched off): what the app cost the phone. Each part has its numbers, or a why saying the phone would not give them; a missing number is never 0. cpu: devicePct and devicePeakPct are the whole phone's processor use over its cores (from the cores' idle time; the peak is over six seconds), appPct the app's own processor time as a percent of one core and appOfDevicePct of all of them, appMs that time (the system counts it only on battery, so appPartly marks a run partly plugged in). memory: avgMb and peakMb over the system's own samples of the app's processes (kind pss or rss; isolated processes such as a browser's renderers are not in it). battery: the whole phone's draw while unplugged, avgDrawMa, avgPowerMw, usedMah, and pctPerHour against capacityMah (worked out from the charge counter and the level); charging says some of the run was plugged in; reportedIn and dischargeReads say how this phone gives its current. data: the app's own bytes, rxBytes and txBytes, Wi-Fi and mobile apart where given, and per minute; coarse marks a run too short for the system's totals to have caught up. series holds cpu as [seconds into the run, percent], memoryMb as [seconds, MB], data as [seconds, bytes down so far, bytes up so far]. cost is what the reading itself took, by kind: reads, avgMs, worstMs, and cpuMs on Frames' own thread.")
         put("sessions", JSONArray().also { all -> sessions.forEach { all.put(it.json(true)) } })
     }.toString(2)
 

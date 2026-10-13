@@ -51,6 +51,7 @@ open class MainActivity : FlutterActivity() {
             "scenario" -> { prefs.scenario = (call.arguments as String).trim(); result.success(null) }
             "corner" -> { prefs.corner = call.arguments as Int; result.success(null) }
             "hud" -> result.success(readout())
+            "hardware" -> { prefs.hardware = call.arguments as Boolean; result.success(null) }
             "icon" -> { val pkg = call.arguments as String; Thread { val png = icon(pkg); runOnUiThread { result.success(png) } }.start() }
             "animation" -> {
                 val scale = (call.arguments as Double).toFloat()
@@ -66,7 +67,8 @@ open class MainActivity : FlutterActivity() {
                 Trace.add("probe: $names windows listed")
                 val words = "The compositor listed $names windows (${list.length} characters)." +
                     (if (names == 0) "\nIt said: ${list.trim().take(200).ifEmpty { "nothing" }}" else "") +
-                    "\nTemperatures: skin ${heat.skin ?: "none"}, processor ${heat.cpu ?: "none"}, graphics ${heat.gpu ?: "none"}"
+                    "\nTemperatures: skin ${heat.skin ?: "none"}, processor ${heat.cpu ?: "none"}, graphics ${heat.gpu ?: "none"}" +
+                    "\n" + runCatching { Hardware(applicationContext).probe() }.getOrElse { "Hardware: the probe failed, $it" }
                 runOnUiThread { result.success(words) }
             }.start()
             "delete" -> {
@@ -91,6 +93,7 @@ open class MainActivity : FlutterActivity() {
         return mapOf(
             "running" to ProfilerService.running,
             "dump" to Access.dump(this), "usage" to Access.usage(this), "overlay" to Settings.canDrawOverlays(this), "secure" to Access.secure(this),
+            "hardware" to prefs.hardware, "batteryStats" to Access.batteryStats(this),
             "hud" to (prefs.hud && Settings.canDrawOverlays(this)), "corner" to prefs.corner % 4, "scenario" to prefs.scenario,
             "sessions" to File(filesDir, "sessions").absolutePath, "package" to packageName,
             "animation" to Settings.Global.getFloat(contentResolver, "animator_duration_scale", 1f).toDouble(),
@@ -127,6 +130,8 @@ open class MainActivity : FlutterActivity() {
             "Draw over apps: ${if (Settings.canDrawOverlays(this)) "allowed" else "not allowed"}",
             "Change developer settings: ${if (Access.secure(this)) "allowed" else "not allowed"}",
             "Screen: ${"%.1f".format(display.refreshRate)} Hz now; modes $modes",
+            "Hardware use (processor, memory, battery, data): ${if (prefs.hardware) "read while measuring" else "switched off"}",
+            "An app's own processor time: ${if (Access.batteryStats(this)) "allowed" else "not allowed (${Hardware.NEEDS_BATTERY_STATS})"}",
             "Core clock speed: ${Cpu.pct()?.let { "$it% of full" } ?: "not readable here"}",
             "Measuring: ${if (ProfilerService.running) "yes" else "no"}",
             if (now == null) "No read yet" else "Last read: ${now.pkg}\nwindow ${now.layer ?: "none"}\n${now.held} frames held, ${now.fresh} new, refresh ${"%.2f".format(now.periodMs)} ms",

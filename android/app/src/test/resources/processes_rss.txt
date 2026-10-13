@@ -1,0 +1,9 @@
+ACTIVITY MANAGER RUNNING PROCESSES (dumpsys activity processes)
+  All known processes:
+  *PERS* UID 10301 ProcessRecord{2aa98f1 21877:com.example.maps/u0a301}
+    user #0 uid=10301 gids={50301, 20301, 9997}
+    pid=21877
+    persistent=true removed=false
+    lastRssTime=-8s40ms rssProcState=2 rssStatType=0 nextRssTime=+51s960ms
+    lastRss=1.2GB lastCachedRss=0.00
+    trimMemoryLevel=0

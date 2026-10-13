@@ -57,6 +57,7 @@ class ProfilerService : Service() {
     private val main = Handler(Looper.getMainLooper())
     private val hud by lazy { Hud(this) }
     private val prefs by lazy { Prefs(this) }
+    private val hardware by lazy { Hardware(this) }
 
     private var failed = ""
     private var idle = ""
@@ -150,7 +151,8 @@ class ProfilerService : Service() {
         current.endedAt = now
         val battery = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
         val temp = (battery?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0) ?: 0) / 10f
-        val ma = (getSystemService(BATTERY_SERVICE) as BatteryManager).getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW).let { if (kotlin.math.abs(it) > 20_000) it / 1000 else it }
+        val amps = (getSystemService(BATTERY_SERVICE) as BatteryManager).getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
+        val ma = HardwareParse.milliamps(amps)
         if (current.startTempC == 0f) current.startTempC = temp
         current.endTempC = temp
         current.thermalWorst = maxOf(current.thermalWorst, power.currentThermalStatus)
@@ -161,7 +163,8 @@ class ProfilerService : Service() {
         val rxKb = if (rx == 0L) 0L else ((rxNow - rx) / 1024).coerceAtLeast(0L); val txKb = if (tx == 0L) 0L else ((txNow - tx) / 1024).coerceAtLeast(0L)
         rx = rxNow; tx = txNow
         val cpu = Cpu.pct()
-        if (ticks++ % 5 == 0) heat = Thermal.read()
+        val heated = ticks++ % 5 == 0
+        if (heated) heat = Thermal.read()
         val level = battery?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
         val worst = fresh.maxOfOrNull { it.totalMs } ?: 0f
         current.seconds.put(JSONObject().apply {
@@ -173,6 +176,9 @@ class ProfilerService : Service() {
             cpu?.let { put("cpuFreqPct", it) }
             heat.skin?.let { put("skinC", it.toDouble()) }; heat.cpu?.let { put("cpuC", it.toDouble()) }; heat.gpu?.let { put("gpuC", it.toDouble()) }
         })
+
+        // What the app is costing the phone: after the frames are in, so a slow read delays none of them.
+        runCatching { hardware.second(battery, amps, heated) }.onFailure { val what = "hardware: $it"; if (what != failed) { failed = what; Trace.add("a hardware read failed: $it at ${it.stackTrace.firstOrNull()}") } }
 
         // What shows: the last few seconds' rate, and the session's jank so far.
         val lately = (0 until current.seconds.length()).toList().takeLast(3).map { current.seconds.getJSONObject(it).getInt("frames") }
@@ -202,10 +208,12 @@ class ProfilerService : Service() {
         session?.startNano = System.nanoTime()
         recent.clear(); carried.clear(); screen = ""; missing = false
         Trace.add("opened $pkg ${info?.versionName ?: "?"}, window ${layer ?: "none yet"}")
+        session?.let { runCatching { hardware.open(it, prefs.hardware) }.onFailure { e -> Trace.add("hardware could not be begun: $e") } }
     }
 
-    private fun close() {
+    private fun close(reads: Boolean = true) {
         session?.let {
+            runCatching { hardware.close(it, reads) }.onFailure { e -> Trace.add("hardware could not be written: $e") }
             store.save(it)
             Trace.add("closed ${it.pkg}: ${it.times.size} frames, " + if (it.times.size < Store.MIN_FRAMES) "too few to keep" else "kept")
         }
@@ -223,7 +231,7 @@ class ProfilerService : Service() {
         if (Build.VERSION.SDK_INT >= 34) startForeground(1, note, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE) else startForeground(1, note)
     }
 
-    override fun onDestroy() { running = false; main.post { hud.hide() }; work.removeCallbacksAndMessages(null); close(); thread.quitSafely(); super.onDestroy() }
+    override fun onDestroy() { running = false; main.post { hud.hide() }; work.removeCallbacksAndMessages(null); close(reads = false); thread.quitSafely(); super.onDestroy() }
 
     class Live(val app: String, val fps: Int, val jankPct: Float, val frames: Int, val hz: Float,
         val screen: String = "", val worstMs: Float = 0f, val tempC: Float = 0f, val recent: FloatArray = FloatArray(0))

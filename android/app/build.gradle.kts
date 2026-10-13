@@ -38,3 +38,8 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // The reading of the phone's reports (frames/HardwareParse.kt) is tried on a computer: ./gradlew :app:testDebugUnitTest
+    testImplementation("junit:junit:4.13.2")
+}

@@ -33,6 +33,10 @@ class Prefs(context: Context) {
     var corner: Int
         get() = kept.getInt("corner", 0)
         set(v) = kept.edit().putInt("corner", v).apply()
+    /** Whether a run also reads what the app costs the phone: processor, memory, battery, data (Hardware.kt). */
+    var hardware: Boolean
+        get() = kept.getBoolean("hardware", true)
+        set(v) = kept.edit().putBoolean("hardware", v).apply()
 }
 
 /** Whether the two permissions a computer gives once are held. */
@@ -43,6 +47,8 @@ object Access {
         return ops.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), context.packageName) == AppOpsManager.MODE_ALLOWED
     }
     fun ready(context: Context) = dump(context) && usage(context)
+    /** An app's own processor time is the system's count, which it gives only with this (Hardware.kt). */
+    fun batteryStats(context: Context) = context.checkSelfPermission("android.permission.BATTERY_STATS") == PackageManager.PERMISSION_GRANTED
     fun secure(context: Context) = context.checkSelfPermission("android.permission.WRITE_SECURE_SETTINGS") == PackageManager.PERMISSION_GRANTED
 }
 
