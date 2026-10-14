@@ -104,6 +104,19 @@
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/frames_widget" />
         </receiver>
 
+        <!-- ==== X-ray ==== -->
+        <!-- Its own accessibility service, separate from the dock's: it reads the app in front only while started from its tile. -->
+        <service android:name="com.mattssoftware.xray.XrayAccess" android:exported="true" android:label="Matt's Tools: X-ray"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter><action android:name="android.accessibilityservice.AccessibilityService" /></intent-filter>
+            <meta-data android:name="android.accessibilityservice" android:resource="@xml/xray_access" />
+        </service>
+        <service android:name="com.mattssoftware.xray.XrayTile" android:exported="true" android:icon="@drawable/ic_xray" android:label="X-ray"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter><action android:name="android.service.quicksettings.action.QS_TILE" /></intent-filter>
+            <meta-data android:name="android.service.quicksettings.TOGGLEABLE_TILE" android:value="true" />
+        </service>
+
         <meta-data android:name="flutterEmbedding" android:value="2" />
     </application>
 </manifest>

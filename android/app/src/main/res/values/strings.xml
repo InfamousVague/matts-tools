@@ -2,4 +2,5 @@
     <string name="frames_widget_about">Frames a second and janky frames for the app in front, while measuring. Tap to start or stop.</string>
     <string name="awake_widget_about">Shows whether the screen is being kept awake and for how long. Tap to switch.</string>
     <string name="dock_access_about">Draws the dock beside the camera above the status bar, so that it can be tapped there. It reads nothing on the screen and sees nothing you type.</string>
+    <string name="xray_access_about">Shows what the app in front is made of. Only while you have started X-ray from its tile, it reads the boxes on that app\'s screen (their kinds, names, places and a few words of their text) and draws their outlines over it. It never reads what is typed in a password field. Nothing is written down and nothing leaves the phone: a reading is held in memory until the next one, until you close X-ray or forget it on X-ray\'s page, or until the screen goes off. Switched on but not started, it reads nothing.</string>
 </resources>

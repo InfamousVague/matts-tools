@@ -78,6 +78,30 @@ object Anatomy {
         return Triple(map, entries.size, files.size)
     }
 
+    private val kinds = LinkedHashMap<String, XrayTree.Kinds>()
+
+    /**
+     * What [pkg] is built with, for the live tree's inspectors (XrayTree.kt `Kinds`): from the names in its package
+     * files only, so it costs one read of each directory. A few apps' answers are kept, by version, since the app in
+     * front changes back and forth; an app that cannot be read is taken as native.
+     */
+    @Synchronized
+    fun kinds(context: Context, pkg: String): XrayTree.Kinds {
+        val none = XrayTree.Kinds(flutter = false, reactNative = false, compose = false)
+        val info = runCatching { context.packageManager.getPackageInfo(pkg, 0) }.getOrNull() ?: return none
+        val key = "$pkg:${info.longVersionCode}:${info.lastUpdateTime}"
+        kinds[key]?.let { return it }
+        val app = info.applicationInfo ?: return none
+        val names = ArrayList<String>()
+        for (path in listOf(app.sourceDir) + (app.splitSourceDirs?.toList() ?: emptyList())) {
+            runCatching { ZipFile(path).use { zip -> for (e in zip.entries()) names += e.name } }
+        }
+        val found = XrayTree.Kinds.of(names)
+        kinds[key] = found
+        while (kinds.size > 8) kinds.remove(kinds.keys.first())
+        return found
+    }
+
     /** Up to [most] bytes from the start of [input] (`readNBytes` is Android 13 and later). */
     private fun head(input: java.io.InputStream, most: Int): ByteArray {
         val buffer = ByteArray(most)

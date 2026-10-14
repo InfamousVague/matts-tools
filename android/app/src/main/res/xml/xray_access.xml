@@ -1,0 +1,8 @@
+<!-- X-ray's service: only what cannot be changed while it runs. It asks for no events here; it asks for them only
+     while X-ray is started from its tile, and goes back to none when it stops (xray/XrayAccess.kt). -->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/xray_access_about"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagDefault"
+    android:canRetrieveWindowContent="true"
+    android:notificationTimeout="150" />

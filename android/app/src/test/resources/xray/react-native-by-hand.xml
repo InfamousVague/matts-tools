@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+<!-- Written by hand, not captured from a phone. A React Native 0.76 screen as facts.md 4c says a service sees it:
+     the platform's classes, never React Native's own (ReactViewGroup reports android.view.ViewGroup, ReactTextView
+     android.widget.TextView); a view with accessibilityRole="button" reports android.widget.Button
+     (ReactAccessibilityDelegate.kt:457-499); a testID arrives as the resource id with no package:id/ prefix
+     (ReactAccessibilityDelegate.kt:169-176, React Native 0.64 and later). The shell above android:id/content is
+     the activity's own. -->
+<hierarchy rotation="0">
+<node index="0" text="" resource-id="" class="android.widget.FrameLayout" package="com.example.rn" content-desc="" clickable="false" long-clickable="false" scrollable="false" checkable="false" password="false" bounds="[0,0][1248,1972]" drawing-order="0">
+<node index="0" text="" resource-id="" class="android.widget.LinearLayout" package="com.example.rn" content-desc="" clickable="false" long-clickable="false" scrollable="false" checkable="false" password="false" bounds="[0,0][1248,1972]" drawing-order="1">
+<node index="0" text="" resource-id="android:id/content" class="android.widget.FrameLayout" package="com.example.rn" content-desc="" clickable="false" long-clickable="false" scrollable="false" checkable="false" password="false" bounds="[0,0][1248,1972]" drawing-order="2">
+<node index="0" text="" resource-id="" class="android.view.ViewGroup" package="com.example.rn" content-desc="" clickable="false" long-clickable="false" scrollable="false" checkable="false" password="false" bounds="[0,128][1248,1909]" drawing-order="1">
+<node index="0" text="Sign in" resource-id="" class="android.widget.TextView" package="com.example.rn" content-desc="" clickable="false" long-clickable="false" scrollable="false" checkable="false" password="false" bounds="[48,200][1200,300]" drawing-order="1" />
+<node index="1" text="matt@example.com" resource-id="email_field" class="android.widget.EditText" package="com.example.rn" content-desc="" clickable="true" long-clickable="true" scrollable="false" checkable="false" password="false" bounds="[48,340][1200,460]" drawing-order="2" />
+<node index="2" text="hunter22" resource-id="password_field" class="android.widget.EditText" package="com.example.rn" content-desc="" clickable="true" long-clickable="true" scrollable="false" checkable="false" password="true" bounds="[48,500][1200,620]" drawing-order="3" />
+<node index="3" text="" resource-id="login_button" class="android.widget.Button" package="com.example.rn" content-desc="Log in" clickable="true" long-clickable="false" scrollable="false" checkable="false" password="false" bounds="[48,700][1200,820]" drawing-order="4">
+<node index="0" text="Log in" resource-id="" class="android.widget.TextView" package="com.example.rn" content-desc="" clickable="false" long-clickable="false" scrollable="false" checkable="false" password="false" bounds="[500,730][748,790]" drawing-order="1" />
+</node>
+<node index="4" text="" resource-id="" class="android.widget.ScrollView" package="com.example.rn" content-desc="" clickable="false" long-clickable="false" scrollable="true" checkable="false" password="false" bounds="[0,900][1248,1909]" drawing-order="5">
+<node index="0" text="" resource-id="" class="android.view.ViewGroup" package="com.example.rn" content-desc="" clickable="false" long-clickable="false" scrollable="false" checkable="false" password="false" bounds="[0,900][1248,1400]" drawing-order="1">
+<node index="0" text="" resource-id="" class="android.widget.ImageView" package="com.example.rn" content-desc="Logo" clickable="false" long-clickable="false" scrollable="false" checkable="false" password="false" bounds="[48,920][248,1120]" drawing-order="1" />
+</node>
+</node>
+</node>
+</node>
+</node>
+</node>
+</hierarchy>

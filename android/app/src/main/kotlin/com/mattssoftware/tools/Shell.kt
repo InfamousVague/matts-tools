@@ -150,6 +150,7 @@ class HomeActivity : com.mattssoftware.frames.MainActivity() {
             "granted" to mapOf(
                 "notifications" to Granted.notifications(this), "overlay" to overlay, "usage" to Granted.usage(this), "access" to Granted.access(this),
                 "write" to Settings.System.canWrite(this), "dump" to Granted.dump(this), "secure" to com.mattssoftware.frames.Access.secure(this),
+                "xray" to Granted.xray(this),
             ),
             "build" to mapOf(
                 "version" to (info.versionName ?: ""), "code" to info.longVersionCode, "package" to packageName,
