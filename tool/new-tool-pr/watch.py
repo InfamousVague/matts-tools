@@ -4,7 +4,7 @@ Runs Claude Code for run.sh and tells what it is doing, a line at a time, while 
 log. It also stops the run at once if Claude Code starts up paying from anywhere but the key it was handed (a
 subscription's sign-in on this machine, say), or without the Workflow tool the run is built on.
 
-    python3 watch.py --log DIR [--hours N] -- claude -p ... --output-format stream-json --verbose
+    python3 watch.py --log DIR [--hours N] [--budget DOLLARS] -- claude -p ... --output-format stream-json --verbose
 """
 import json
 import os
@@ -39,6 +39,7 @@ def main():
     mine, command = argv[:cut], argv[cut + 1:]
     log_dir = mine[mine.index("--log") + 1]
     hours = float(mine[mine.index("--hours") + 1]) if "--hours" in mine else 8.0
+    budget = float(mine[mine.index("--budget") + 1]) if "--budget" in mine else None
     os.makedirs(log_dir, exist_ok=True)
 
     started = time.time()
@@ -70,6 +71,7 @@ def main():
     signal.signal(signal.SIGTERM, lambda *_: stop("terminated.", 143))
 
     last = None
+    seen = {}
     with open(os.path.join(log_dir, "log.jsonl"), "w") as log:
         for line in child.stdout:
             log.write(line)
@@ -102,6 +104,17 @@ def main():
                         print("%s %s" % (stamp, short(block["text"], 600)), flush=True)
                     elif block.get("type") == "tool_use":
                         print("%s → %s" % (stamp, tool_line(block)), flush=True)
+            elif kind == "system" and sub == "task_progress":
+                # One line each time the workflow moves on to something else, not one for every step an agent takes.
+                doing = str(event.get("description") or "")
+                if doing and doing not in seen.setdefault(event.get("task_id"), set()):
+                    seen[event.get("task_id")].add(doing)
+                    print("%s · %s" % (stamp, short(doing, 200)), flush=True)
+            elif kind == "system" and sub in ("task_started", "task_notification"):
+                print("%s · %s: %s" % (stamp, "started" if sub == "task_started" else event.get("status", "ended"),
+                                       short(event.get("description") or event.get("summary") or event.get("task_id"), 200)), flush=True)
+            elif kind == "system" and sub in ("background_tasks_changed", "task_updated", "session_title_changed"):
+                pass
             elif kind == "system":
                 rest = {k: v for k, v in event.items() if k not in ("type", "subtype", "uuid", "session_id")}
                 print("%s · %s %s" % (stamp, sub, short(json.dumps(rest), 200)), flush=True)
@@ -122,6 +135,10 @@ def main():
     print("\nDone in %.0f minutes, $%s. The last thing it said is in %s/result.txt:\n" % (
         minutes, "%.2f" % cost if isinstance(cost, (int, float)) else "?", log_dir))
     print(str(last.get("result", ""))[:4000])
+    # At the cap Claude Code stops the workflow and ends quietly, with whatever it last said: say so for it.
+    if budget and isinstance(cost, (int, float)) and cost >= budget * 0.98:
+        print("\nStopped at the spending cap of $%.2f: the work was cut off where it was." % budget)
+        sys.exit(7)
     sys.exit(1 if last.get("is_error") else code)
 
 

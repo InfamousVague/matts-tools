@@ -7,6 +7,8 @@
 #   tool/new-tool-pr/run.sh --smoke             one small agent, for cents: proves the key pays, the workflow
 #                                               runs and the guard refuses what it should. Do this first.
 #   tool/new-tool-pr/run.sh --check             looks at everything a run needs and starts nothing
+#   tool/new-tool-pr/run.sh --key               asks the API whose key this is and whether it can spend
+#                                               (a request of one word: a hundredth of a cent if it can)
 #
 # What pays: CLAUDE_KEY, read from the .env at the top of the repository (or from the environment if it is already
 # there). It is handed to Claude Code as its API key for this run only, is never printed, and is kept out of the
@@ -44,7 +46,8 @@ for arg in "$@"; do
   case "$arg" in
     --smoke) MODE=smoke ;;
     --check) MODE=check ;;
-    -h|--help) sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    --key) MODE=key ;;
+    -h|--help) sed -n '2,32p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     -*) die "unknown option $arg" ;;
     *) BRIEF="$arg" ;;
   esac
@@ -74,6 +77,39 @@ if [ -z "$key" ] && [ -f "$ROOT/.env" ]; then
 fi
 [ -n "$key" ] || die "no CLAUDE_KEY: put a line CLAUDE_KEY=... in $ROOT/.env, or export it."
 unset CLAUDE_KEY
+
+# Whose key it is and whether it can spend, asked of the API itself. The key goes to curl on its standard input,
+# so that it is in no command line, and nothing of it is printed.
+if [ "$MODE" = key ]; then
+  case "$key" in
+    sk-ant-admin*) say "kind          an admin key: it manages an organization and cannot run Claude. An ordinary API key is needed." ;;
+    sk-ant-oat*) say "kind          a sign-in token from \"claude setup-token\", not an API key: it spends a Claude plan, not API credit" ;;
+    sk-ant-*) say "kind          an API key" ;;
+    *) say "kind          not in the shape of an Anthropic key" ;;
+  esac
+  tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
+  ask() { printf 'header = "x-api-key: %s"\n' "$key" | curl -sS -m 40 -K - -H 'anthropic-version: 2023-06-01' "$@"; }
+  code="$(ask -o "$tmp/models" -D "$tmp/models.h" -w '%{http_code}' 'https://api.anthropic.com/v1/models?limit=1' || true)"
+  org="$(sed -n -E 's/^anthropic-organization-id:[[:space:]]*//Ip' "$tmp/models.h" 2>/dev/null | tr -d '\r' | tail -1)"
+  if [ "$code" = 200 ]; then say "accepted      yes"; else say "accepted      no (the API answered $code)"; fi
+  say "organization  ${org:-not said}"
+  # Each model the run uses: credit that is given away is sometimes good for some models and not others.
+  for model in ${KEY_MODELS:-claude-haiku-4-5-20251001 claude-sonnet-5-5 claude-opus-5-5}; do
+    code="$(ask -o "$tmp/message" -w '%{http_code}' -H 'content-type: application/json' \
+      -d "{\"model\":\"$model\",\"max_tokens\":1,\"messages\":[{\"role\":\"user\",\"content\":\"1\"}]}" https://api.anthropic.com/v1/messages || true)"
+    if [ "$code" = 200 ]; then say "can spend     yes, on $model"
+    else say "can spend     NO, on $model: $(python3 -c 'import json,sys
+try:
+    e = json.load(open(sys.argv[1])).get("error", {})
+    print("%s: %s" % (e.get("type"), e.get("message")))
+except Exception:
+    print("the API answered " + sys.argv[2])' "$tmp/message" "$code")"; fi
+  done
+  say
+  say "The organization above is the one this key spends from. In console.anthropic.com, Settings, Organization shows"
+  say "the id of the organization you are looking at; its Billing page is where the credit must be."
+  unset key; exit 0
+fi
 
 # ---- Claude Code: the newest there is ----------------------------------------------------------------------------
 # The desktop app keeps its own, usually newer than the one on the PATH, and the workflow needs a recent one.
@@ -210,8 +246,10 @@ say
 
 # The key goes to Claude Code by the environment, and Claude Code keeps it from the commands it runs
 # (CLAUDE_CODE_SUBPROCESS_ENV_SCRUB). With that set it will run only the tools named below, asking nobody.
-# Anything else that could pay or sign in is taken out of the way first.
-unset CLAUDE_CODE_OAUTH_TOKEN ANTHROPIC_AUTH_TOKEN ANTHROPIC_BASE_URL CLAUDE_CODE_USE_BEDROCK CLAUDE_CODE_USE_VERTEX CLAUDE_CODE_USE_FOUNDRY
+# Everything else of Claude's in the environment is taken out first: another way to pay or sign in, and, when this is
+# started from inside a Claude session (the desktop app's, say), that session's account and organization, which the
+# new one would otherwise take for its own. With those left in, the API refused a key that had credit.
+for name in $(compgen -v | grep -E '^(CLAUDE|ANTHROPIC)' | grep -v -x -E 'CLAUDE|CLAUDE_VERSION' || true); do unset "$name"; done
 export ANTHROPIC_API_KEY="$key"; unset key
 export CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1
 # A workflow is background work, and Claude Code stops waiting for that after ten idle minutes unless told not to.
@@ -220,8 +258,10 @@ export CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0
 export ANDROID_SERIAL="${EMULATOR:-no-device-on-this-run}"
 
 cd "$WORKTREE"
+# A run is hours long: the computer is kept from sleeping while it goes on.
+awake=""; have caffeinate && awake="caffeinate -i"
 set +e
-python3 "$HERE/watch.py" --log "$RUN" --hours "$HOURS" -- \
+$awake python3 "$HERE/watch.py" --log "$RUN" --hours "$HOURS" --budget "$BUDGET_USD" -- \
   "$CLAUDE" -p "$(cat "$RUN/prompt.txt")" \
   --model "$MODEL" \
   --max-budget-usd "$BUDGET_USD" \
@@ -237,6 +277,7 @@ unset ANTHROPIC_API_KEY
 say
 # The key was refused, or has nothing to spend: watch.py has said which, and there is no more to say.
 if [ "$code" -eq 5 ] || [ "$code" -eq 6 ]; then exit "$code"; fi
+if [ "$MODE" = smoke ] && [ "$code" -eq 7 ]; then exit "$code"; fi
 if [ "$MODE" = smoke ]; then
   if grep -q '"guardHolds"[[:space:]]*:[[:space:]]*true' "$RUN/result.txt" 2>/dev/null; then say "Smoke run passed: the key paid, the workflow ran, and the guard refused what it should."
   else say "Smoke run did NOT pass. Read $RUN/result.txt and $RUN/log.jsonl before starting a real run."; [ "$code" -eq 0 ] && code=1; fi
