@@ -44,6 +44,7 @@ void main() {
         p.awake['forMs'] = 754000;
       }));
   testWidgets('toasty\'s own page', (tester) => picture(tester, 'toasty', 'toasty'));
+  testWidgets('x-ray\'s page', (tester) => picture(tester, 'xray', 'xray'));
   testWidgets('frames\' first page', (tester) => picture(tester, 'frames', 'frames'));
 
   // ---- hardware use: a run, an app, two side by side, the leaderboard ----

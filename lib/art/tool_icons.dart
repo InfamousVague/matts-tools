@@ -1,7 +1,7 @@
 import 'app_icon.dart';
 
 /// The tools' own marks, the drawings their tiles and widgets wear on the phone (android/app/src/main/res/drawable
-/// `ic_dock`, `ic_pill`, `ic_frames`), as paths on the 24 grid for [AppIcon] to draw the way it draws the kit's.
+/// `ic_dock`, `ic_pill`, `ic_frames`, `ic_xray`), as paths on the 24 grid for [AppIcon] to draw the way it draws the kit's.
 class ToolIcons {
   /// The dock: one pill.
   static const dock = LucideIcon('dock', ['M7 8h10a4 4 0 0 1 0 8h-10a4 4 0 0 1 0 -8z'], [0]);
@@ -11,4 +11,7 @@ class ToolIcons {
 
   /// Frames: a trace of frame times, steady, one spike.
   static const frames = LucideIcon('frames', ['M3 16 L7 16 L9 12 L11 16 L13 5 L15 16 L17 14 L21 14', 'M3 20 L21 20'], []);
+
+  /// X-ray: three sheets stacked, seen from the side. The kit's own set has no layers drawing, so it is drawn here.
+  static const layers = LucideIcon('layers', ['M12 2 L2 7 L12 12 L22 7 Z', 'M2 12 L12 17 L22 12', 'M2 17 L12 22 L22 17'], [0]);
 }

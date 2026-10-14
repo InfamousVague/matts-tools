@@ -37,6 +37,14 @@ class FakePhone {
     {'package': 'com.example.reader', 'label': 'Reader'},
   ];
 
+  /// What X-ray lists to choose among (Matt's Tools too, as the phone's side does), and what it answers of each by package: a missing one
+  /// is an app the phone cannot read.
+  final List<Map<String, String>> xrayApps = [
+    {'package': 'com.example.maps', 'label': 'Maps'},
+    {'package': 'com.mattssoftware.tools', 'label': 'Matt\'s Tools'},
+  ];
+  final Map<String, Map<String, Object?>> anatomies = {};
+
   /// The calls of [method], oldest first.
   List<MethodCall> of(String method) => [for (final call in calls) if (call.method == method) call];
 
@@ -62,6 +70,11 @@ class FakePhone {
         return launch;
       case 'apps':
         return apps;
+      case 'xray':
+        final args = call.arguments as Map;
+        if (args['do'] == 'apps') return xrayApps;
+        if (args['do'] == 'anatomy') return anatomies[args['package']] ?? {'error': 'Android would not let Matt\'s Tools read this app\'s package.'};
+        return null;
       case 'set':
         final args = call.arguments as Map;
         final name = args['name'] as String, value = args['value'];
