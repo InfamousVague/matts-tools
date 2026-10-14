@@ -28,7 +28,8 @@ import kotlin.math.roundToInt
  * always works.
  *
  * With Select off, the outlines take no touch at all and the app works as if X-ray were not there; with Select on, a
- * tap picks the innermost box there, and the window stops short of the navigation bar so home and back still work.
+ * tap picks the innermost box there, and the window stops short of the status bar and the navigation bar, on whatever
+ * edge it stands, so the shade, home, back and recents still work.
  * With Layers on, the compositor's surfaces for the app (Layers.kt) are outlined instead, coloured by their order, and
  * a tap picks the topmost of them.
  */
@@ -62,16 +63,20 @@ class Overlay(private val service: XrayAccess) {
 
     // ---- the screen ----
 
-    private class Screen(val wide: Int, val tall: Int, val top: Int, val bottom: Int, val keepOut: List<XrayTree.Area>)
+    /**
+     * The screen, and the phone's own bars along its four edges ([top] the status bar, the navigation bar at [bottom],
+     * or at [left] or [right] where three buttons stand at the side of a turned phone).
+     */
+    private class Screen(val wide: Int, val tall: Int, val top: Int, val bottom: Int, val left: Int, val right: Int, val keepOut: List<XrayTree.Area>)
 
     private fun screen(): Screen {
-        val wide: Int; val tall: Int; var top = 0; var bottom = 0
+        val wide: Int; val tall: Int; var top = 0; var bottom = 0; var left = 0; var right = 0
         val cuts = ArrayList<Rect>()
         if (Build.VERSION.SDK_INT >= 30) {
             val m = windows.maximumWindowMetrics
             wide = m.bounds.width(); tall = m.bounds.height()
-            top = m.windowInsets.getInsets(WindowInsets.Type.statusBars()).top
-            bottom = m.windowInsets.getInsets(WindowInsets.Type.navigationBars()).bottom
+            val bars = m.windowInsets.getInsets(WindowInsets.Type.systemBars())
+            top = bars.top; bottom = bars.bottom; left = bars.left; right = bars.right
             m.windowInsets.displayCutout?.boundingRects?.let { cuts += it }
         } else {
             val m = android.util.DisplayMetrics()
@@ -82,6 +87,9 @@ class Overlay(private val service: XrayAccess) {
             @Suppress("DEPRECATION") windows.defaultDisplay.cutout?.boundingRects?.let { cuts += it }
         }
         val keepOut = cuts.filter { !it.isEmpty }.map { XrayTree.Area(it.left, it.top, it.right, it.bottom) }.toMutableList()
+        // A navigation bar at a side edge: the bar keeps off it as off the camera.
+        if (left > 0) keepOut += XrayTree.Area(0, 0, left, tall)
+        if (right > 0) keepOut += XrayTree.Area(wide - right, 0, wide, tall)
         // The Dock beside the camera reaches past the cut-out by its frame (dock/Dock.kt `gap`), and on a screen
         // whose cut-out is taller than the hole it is pushed down further: the bar keeps clear of that frame too.
         runCatching {
@@ -91,7 +99,7 @@ class Overlay(private val service: XrayAccess) {
                 keepOut += XrayTree.Area(h.left - gap, y, h.right + gap, y + h.height() + gap * 2)
             }
         }
-        return Screen(wide, tall, top, bottom, keepOut)
+        return Screen(wide, tall, top, bottom, left, right, keepOut)
     }
 
     // ---- the windows ----
@@ -233,12 +241,17 @@ class Overlay(private val service: XrayAccess) {
         val v = outlines ?: return
         val at = outlineAt ?: return
         if (select) {
-            // Stops short of the navigation bar, so home and back still reach the system while Select is on.
+            // Stops short of the phone's bars on every edge, so the shade, home, back and recents still reach the system
+            // while Select is on, wherever the navigation bar stands.
             val s = screen()
             at.flags = at.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
-            at.height = s.tall - s.bottom
+            at.x = s.left; at.y = s.top
+            at.width = s.wide - s.left - s.right
+            at.height = s.tall - s.top - s.bottom
         } else {
             at.flags = at.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+            at.x = 0; at.y = 0
+            at.width = ViewGroup.LayoutParams.MATCH_PARENT
             at.height = ViewGroup.LayoutParams.MATCH_PARENT
         }
         runCatching { windows.updateViewLayout(v, at) }
