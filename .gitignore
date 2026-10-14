@@ -12,3 +12,10 @@ android/local.properties
 *.iml
 .idea/
 android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+
+# Keys for the scripts under tool/: never in the repository.
+.env
+.env.*
+!.env.example
+# What tool/new-tool-pr leaves behind from a run.
+tool/new-tool-pr/runs/
