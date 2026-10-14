@@ -63,3 +63,19 @@ The reading of the phone's reports is tried on a computer: `cd android && ./grad
 <package> '<[["Home",139,1696], ...]>' <x to swipe at>` taps each of those in turn, scrolls up and down for seven
 seconds, and prints frames a second, the 1% low, the share of janky frames and the frame times for each, read from
 the compositor as Frames reads them on the phone. It only taps the places it is given and swipes up and down.
+
+## A new tool by pull request, made by Claude Code on its own
+
+`tool/new-tool-pr/run.sh` takes a brief (`tool/new-tool-pr/briefs/xray.md` unless another is named) and has Claude
+Code build what it describes in a worktree beside this repository, on a branch named for the brief, and open a pull
+request. It pays with the `CLAUDE_KEY` in the `.env` at the top of the repository, which git ignores, and stops at
+once if Claude Code starts up paying any other way. It never merges, never pushes to main and never touches a phone:
+`guard.py` is asked before every command and refuses those.
+
+    tool/new-tool-pr/run.sh --check     looks at everything a run needs and starts nothing
+    tool/new-tool-pr/run.sh --smoke     one small agent, for cents: the key pays, the workflow runs, the guard holds
+    tool/new-tool-pr/run.sh             the run itself: $180 and eight hours at most (BUDGET_USD, HOURS)
+
+The work is one saved workflow (`workflow.js`, started with the word "ultracode"): the repository and the platform
+are read, a plan is made and attacked, the tool is built in packages, checked, tried on the emulator, reviewed three
+ways, mended, and put up for review. A run that stops part way goes on from where it stopped when started again.

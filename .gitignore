@@ -17,5 +17,6 @@ android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
 .env
 .env.*
 !.env.example
-# What tool/new-tool-pr leaves behind from a run.
+# What tool/new-tool-pr leaves behind from a run, and what it gives a run to work from.
 tool/new-tool-pr/runs/
+.new-tool-pr/
