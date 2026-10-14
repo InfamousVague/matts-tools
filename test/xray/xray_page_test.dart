@@ -155,6 +155,57 @@ void main() {
     await endApp(tester);
   });
 
+  testWidgets('the last capture lists the app\'s compositor layers, top first, with the Flutter surface named', (tester) async {
+    // The Frames page's layers on the emulator, as xray/LayerParse.kt reads them (LayerParseTest), bottom to top.
+    fake.xrayState['capture'] = {
+      'package': 'com.mattssoftware.tools', 'label': 'Matt\'s Tools', 'count': 18, 'windows': 1, 'inspectors': ['Native', 'Flutter'], 'at': 0,
+      'layers': [
+        {'id': 782, 'name': '12a0f75 com.mattssoftware.tools/com.mattssoftware.frames.MainActivity#782', 'kind': 'window', 'words': 'Window', 'z': 0, 'order': 0},
+        {'id': 788, 'name': '217b6d7 SurfaceView[com.mattssoftware.tools/com.mattssoftware.frames.MainActivity](BLAST)#788', 'kind': 'surface', 'words': 'Flutter surface', 'z': 0, 'order': 1, 'l': 0, 't': 0, 'r': 1248, 'b': 1972},
+        {'id': 783, 'name': 'com.mattssoftware.tools/com.mattssoftware.frames.MainActivity#783', 'kind': 'view root', 'words': 'View root: the window\'s frames', 'z': 0, 'order': 2, 'l': 0, 't': 0, 'r': 1248, 'b': 1972},
+      ],
+      'layersWhy': null,
+    };
+    await pumpApp(tester, size: const Size(390, 2000), home: const AppShell(first: xrayPlace));
+    await settle(tester);
+    expect(find.text('Compositor layers'), findsOneWidget);
+    expect(find.text('Flutter surface'), findsOneWidget);
+    expect(find.text('Window'), findsOneWidget);
+    expect(find.text('Place not given'), findsOneWidget);
+    expect(find.text('0, 0, 1248 by 1972, z 0'), findsNWidgets(2));
+    // Top first: the view root above the surface above the window.
+    expect(tester.getTopLeft(find.text('View root: the window\'s frames')).dy, lessThan(tester.getTopLeft(find.text('Flutter surface')).dy));
+    expect(tester.getTopLeft(find.text('Flutter surface')).dy, lessThan(tester.getTopLeft(find.text('Window')).dy));
+    await shot(tester, 'xray-layers');
+    await endApp(tester);
+  });
+
+  testWidgets('without the computer\'s permission the layers say why, with the line to run', (tester) async {
+    fake.xrayState['capture'] = {'package': 'com.example.maps', 'label': 'Maps', 'count': 40, 'layers': null, 'layersWhy': 'Not available: Android lets an app read the compositor only after a computer says so, once.'};
+    await pumpApp(tester, size: const Size(390, 1600), home: const AppShell(first: xrayPlace));
+    await settle(tester);
+    expect(find.text('Not available: Android lets an app read the compositor only after a computer says so, once.'), findsOneWidget);
+    expect(find.text('adb shell pm grant com.mattssoftware.tools android.permission.DUMP'), findsOneWidget);
+    await endApp(tester);
+  });
+
+  testWidgets('layers not yet read say how to read them', (tester) async {
+    fake.xrayState['capture'] = {'package': 'com.example.maps', 'label': 'Maps', 'count': 40};
+    await pumpApp(tester, size: const Size(390, 1600), home: const AppShell(first: xrayPlace));
+    await settle(tester);
+    expect(find.text('Not read. Tap Layers on X-ray\'s bar, or Open, to read them.'), findsOneWidget);
+    await endApp(tester);
+  });
+
+  test('a layer that leaves keys out reads with defaults, and with no place', () {
+    final s = CaptureSummary({'layers': [{'name': 'a#1'}]});
+    expect(s.layers!.single.name, 'a#1');
+    expect(s.layers!.single.place, isNull);
+    expect(s.layers!.single.words, '');
+    expect(CaptureSummary({}).layers, isNull);
+    expect(Capture({'layers': [{'id': 5, 'l': 1, 't': 2, 'r': 3, 'b': 4}]}).layers!.single.place, const Rect.fromLTRB(1, 2, 3, 4));
+  });
+
   test('a state or capture that leaves keys out reads with defaults', () {
     final s = XrayState({'capture': {'count': 3}});
     expect(s.on, isFalse);

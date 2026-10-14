@@ -94,6 +94,30 @@ class Anatomy {
   final List<String> cannot;
 }
 
+/// One of the app's compositor layers (xray/LayerParse.kt `AppLayer.toMap`).
+class CaptureLayer {
+  CaptureLayer(Map m)
+      : id = (m['id'] as num?)?.toInt() ?? 0,
+        name = (m['name'] as String?) ?? '',
+        kind = (m['kind'] as String?) ?? 'layer',
+        words = (m['words'] as String?) ?? '',
+        z = (m['z'] as num?)?.toInt() ?? 0,
+        order = (m['order'] as num?)?.toInt() ?? 0,
+        place = m['l'] == null ? null : Rect.fromLTRB(((m['l'] as num?) ?? 0).toDouble(), ((m['t'] as num?) ?? 0).toDouble(), ((m['r'] as num?) ?? 0).toDouble(), ((m['b'] as num?) ?? 0).toDouble());
+  final int id, z;
+
+  /// From the bottom, among the app's layers.
+  final int order;
+
+  /// The whole name the compositor gives it, and what it is: "window", "view root", "surface" and so on, and in words.
+  final String name, kind, words;
+
+  /// In the screen's own pixels; null where the phone does not give it.
+  final Rect? place;
+}
+
+List<CaptureLayer>? _layers(Object? list) => list == null ? null : [for (final l in list as List) CaptureLayer(l as Map)];
+
 /// What X-ray's page shows of the last reading of a screen before it is opened (xray/XrayAccess.kt `Capture.summary`).
 class CaptureSummary {
   CaptureSummary(Map m)
@@ -104,9 +128,15 @@ class CaptureSummary {
         inspectors = [for (final i in (m['inspectors'] as List?) ?? const []) i as String],
         at = (m['at'] as num?)?.toInt() ?? 0,
         picked = (m['picked'] as num?)?.toInt(),
-        cut = (m['cut'] as bool?) ?? false;
+        cut = (m['cut'] as bool?) ?? false,
+        layers = _layers(m['layers']),
+        layersWhy = m['layersWhy'] as String?;
   final String package, label;
   final int count, windows, at;
+
+  /// The app's compositor layers, bottom to top; null where they were not read, with [layersWhy] saying why where they cannot be.
+  final List<CaptureLayer>? layers;
+  final String? layersWhy;
 
   /// The inspectors that read some box: "Native", "Jetpack Compose, likely", "React Native", "Flutter".
   final List<String> inspectors;
@@ -167,9 +197,13 @@ class Capture {
         boxes = [for (final b in (m['boxes'] as List?) ?? const []) CaptureBox(b as Map)],
         inspectors = [for (final i in (m['inspectors'] as List?) ?? const []) i as String],
         picked = (m['picked'] as num?)?.toInt(),
-        cut = (m['cut'] as bool?) ?? false;
+        cut = (m['cut'] as bool?) ?? false,
+        layers = _layers(m['layers']),
+        layersWhy = m['layersWhy'] as String?;
   final String package, label;
   final int at, width, height;
+  final List<CaptureLayer>? layers;
+  final String? layersWhy;
   final List<CaptureBox> boxes;
   final List<String> inspectors;
   final int? picked;
