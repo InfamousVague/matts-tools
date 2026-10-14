@@ -73,6 +73,7 @@ once if Claude Code starts up paying any other way. It never merges, never pushe
 `guard.py` is asked before every command and refuses those.
 
     tool/new-tool-pr/run.sh --check     looks at everything a run needs and starts nothing
+    tool/new-tool-pr/run.sh --key       asks the API whose key it is and whether it can spend
     tool/new-tool-pr/run.sh --smoke     one small agent, for cents: the key pays, the workflow runs, the guard holds
     tool/new-tool-pr/run.sh             the run itself: $180 and eight hours at most (BUDGET_USD, HOURS)
 

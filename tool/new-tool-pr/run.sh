@@ -181,7 +181,7 @@ else
   # What the build needs and git does not carry.
   [ -f "$WORKTREE/android/local.properties" ] || cp "$ROOT/android/local.properties" "$WORKTREE/android/local.properties" 2>/dev/null || true
   SCRATCH="$WORKTREE/.new-tool-pr"
-  git -C "$WORKTREE" check-ignore -q .new-tool-pr || die "$WORKTREE does not ignore .new-tool-pr/ (the branch is older than this script: merge main into it)"
+  git -C "$WORKTREE" check-ignore -q .new-tool-pr/brief.md || die "$WORKTREE does not ignore .new-tool-pr/ (the branch is older than this script: merge main into it)"
   mkdir -p "$SCRATCH/notes" "$SCRATCH/samples" "$SCRATCH/shots"
   cp "$BRIEF" "$SCRATCH/brief.md"
   rm -rf "$SCRATCH/brief"; mkdir -p "$SCRATCH/brief"
