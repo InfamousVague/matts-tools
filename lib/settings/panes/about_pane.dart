@@ -56,7 +56,7 @@ class AboutPane extends StatelessWidget {
     return PaneBody(
       children: [
         PaneSection(
-          children: [PaneHero(title: tools.build.version, meta: const Text('Matt\'s Tools · the dock, Amphetamine, Frames and Toasty in one app'))],
+          children: [PaneHero(title: tools.build.version, meta: const Text('Matt\'s Tools · the dock, Amphetamine, Frames, Toasty and X-ray in one app'))],
         ),
         PaneSection(
           title: 'Permissions',
@@ -66,8 +66,9 @@ class AboutPane extends StatelessWidget {
             permission('overlay', 'Display over other apps', 'The dock floats over whatever is on screen, Frames can draw its readout over the app it measures, and Amphetamine holds the screen on with a window you cannot see.', granted.overlay, open: 'overlay'),
             permission('usage', 'Which app is in front', 'Frames files its measurements under the app they were of, and Amphetamine can stay on only while apps you choose are in front. Find Matt\'s Tools in the list and allow it.', granted.usage, open: 'usage'),
             permission('access', 'Taps on the dock beside the camera', 'Only if you dock it beside the camera. The one kind of window Android draws above the status bar is an accessibility service\'s. This one asks for no events and reads nothing on the screen. Under Installed apps, switch on Matt\'s Tools.', granted.access, open: 'accessibility', word: 'Open Accessibility'),
+            permission('xray', 'X-ray\'s switch', 'Only for X-ray. It reads the screen of the app in front through an accessibility service of its own, apart from the dock\'s, and only while you have started it from its tile. It never reads password fields and writes nothing down. Under Installed apps (Downloaded apps on some phones), switch on Matt\'s Tools: X-ray.', granted.xray, open: 'accessibility', word: 'Open Accessibility'),
             permission('write', 'Modify system settings', 'Only for Amphetamine\'s other way of holding the screen: the phone\'s own timeout, set to its longest and put back after.', granted.write, open: 'write'),
-            permission('dump', 'Frame timings, from a computer', 'Only for Frames. Android lets an app read another app\'s frame timings after a computer says so, once. With the phone plugged in or on wireless debugging:', granted.dump, command: 'adb shell pm grant $package android.permission.DUMP'),
+            permission('dump', 'Frame timings, from a computer', 'For Frames, and for X-ray\'s compositor layers. Android lets an app read another app\'s frame timings after a computer says so, once. With the phone plugged in or on wireless debugging:', granted.dump, command: 'adb shell pm grant $package android.permission.DUMP'),
             permission('secure', 'Developer switches, from a computer', 'Only for Frames\' animation speed and stay awake while charging:', granted.secure, command: 'adb shell pm grant $package android.permission.WRITE_SECURE_SETTINGS'),
             SettingRow(
               key: const ValueKey('granted.setup'),

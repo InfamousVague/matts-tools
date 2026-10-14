@@ -12,10 +12,11 @@ import 'panes/amphetamine_pane.dart';
 import 'panes/dock_pane.dart';
 import 'panes/frames_pane.dart';
 import 'panes/toasty_pane.dart';
+import 'panes/xray_pane.dart';
 import 'settings_screen.dart';
 
 /// Every page of Settings by its id: a page for each tool, the page of apps Amphetamine's opens, and About.
-const Set<String> settingsIds = {'dock', 'amphetamine', 'amphetamine-apps', 'frames', 'toasty', 'about'};
+const Set<String> settingsIds = {'dock', 'amphetamine', 'amphetamine-apps', 'frames', 'toasty', 'xray', 'about'};
 
 /// The dock's row in the list: whether it shows, and how.
 String dockSummary(DockState dock) => !dock.on ? 'Off' : dock.beside ? 'On · beside the camera' : 'On · floating';
@@ -27,6 +28,9 @@ String awakeSummary(AwakeState awake) => awake.on ? 'Awake for ${spanOf(awake.fo
 String framesSummary(PhoneState? phone) => phone == null
     ? ''
     : [phone.running ? 'Measuring' : 'Off', if (phone.scenario.isNotEmpty) phone.scenario].join(' · ');
+
+/// X-ray's: whether its switch in Accessibility is on.
+String xraySummary(Granted granted) => granted.xray ? 'Switched on' : 'Switch is off';
 
 /// The sections of this app's Settings (Ghost.md's lib/settings/settings_sections.dart is its own list): a page for
 /// each tool, in the page of tools' order, and About in a card of its own. [tools] and [phone] are the phone's side
@@ -74,6 +78,14 @@ List<SettingsSection> toolsSections({required ToolsState? tools, required PhoneS
       group: 0,
       summary: tools?.heat,
       content: (_) => tools == null ? reading : ToastyPane(tools: tools),
+    ),
+    SettingsSection(
+      id: 'xray',
+      label: 'X-ray',
+      icon: const AppIcon(ToolIcons.layers, size: 18),
+      group: 0,
+      summary: tools == null ? null : xraySummary(tools.granted),
+      content: (_) => tools == null ? reading : XrayPane(tools: tools),
     ),
     SettingsSection(
       id: 'about',

@@ -77,7 +77,10 @@ object Ink {
 object Granted {
     fun notifications(c: Context) = Build.VERSION.SDK_INT < 33 || c.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
     fun overlay(c: Context) = Settings.canDrawOverlays(c)
-    fun access(c: Context) = DockAccess.enabled(c)
+    /** The Dock's own service, by its whole name: X-ray's switch being on says nothing of the Dock's taps. */
+    fun access(c: Context) = com.mattssoftware.xray.Switched.on(c, DockAccess::class.java.name)
+    /** X-ray's own service, by its whole name. */
+    fun xray(c: Context) = com.mattssoftware.xray.Switched.xray(c)
     fun usage(c: Context): Boolean {
         val ops = c.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
         return ops.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), c.packageName) == AppOpsManager.MODE_ALLOWED
@@ -137,7 +140,10 @@ class SetupActivity : Page() {
             Step("Taps on the dock beside the camera", "Only if you dock it beside the camera. The status bar takes every touch on its strip, and the one kind of window Android draws above it is an accessibility service's. This one asks for no events and reads nothing on the screen. Under Installed apps, switch on Matt's Tools.", "Open Accessibility", true,
                 { Granted.access(it) }, { a -> a.settings(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
                 "If the switch is greyed out, the phone is holding back an app it did not install from a store: open Settings, Apps, Matt's Tools, the three dots at the top, Allow restricted settings, then come back."),
-            Step("Frame timings, from a computer", "Only for Frames. Android lets an app read another app's frame timings after a computer says so, once. With the phone plugged in or on wireless debugging:", "I have run it", true,
+            Step("X-ray", "Only for X-ray. To show what an app's screen is made of, X-ray reads it through an accessibility service of its own, separate from the dock's, and only while you have started it from its tile. It never reads password fields and writes nothing down. Under Installed apps (Downloaded apps on some phones), switch on Matt's Tools: X-ray.", "Open Accessibility", true,
+                { Granted.xray(it) }, { a -> a.settings(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
+                "If the switch is greyed out, the phone is holding back an app it did not install from a store: open Settings, Apps, Matt's Tools, the three dots at the top, Allow restricted settings, then come back."),
+            Step("Frame timings, from a computer", "For Frames, and for X-ray's compositor layers. Android lets an app read another app's frame timings after a computer says so, once. With the phone plugged in or on wireless debugging:", "I have run it", true,
                 { Granted.dump(it) }, { it.draw() },
                 "adb shell pm grant com.mattssoftware.tools android.permission.DUMP"),
         )

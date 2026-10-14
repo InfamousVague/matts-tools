@@ -54,6 +54,7 @@ class ToolsPage extends StatelessWidget {
             tool('Frames', ToolIcons.frames, framesPlace),
             tool('Toasty', Lucide.flame, toastyPlace),
           ]),
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [tool('X-ray', ToolIcons.layers, xrayPlace), const Spacer(), const Spacer(), const Spacer()]),
           const Heading('Setting up'),
           Line(
             title: 'Permissions',

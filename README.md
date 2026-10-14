@@ -8,6 +8,7 @@ Small tools for an Android phone, kept in one app.
 | **Amphetamine** | Keeps the screen on from a quick settings tile, with a second tile for full brightness, a home screen widget, and ways to end a session by itself (low battery, unplugged, the phone folded shut). |
 | **Frames** | Measures frames a second and janky frames for the app in front, and what the app costs the phone meanwhile (processor, memory, battery, data); keeps the runs per app and build, ranks apps, and sets two apps or two builds side by side. Exports JSON. |
 | **Toasty** | The phone's temperature, from its battery. |
+| **X-ray** | Shows what an app is made of: its frameworks, libraries and assets from its package files, its screen as a tree of boxes read the way each kind of app gives it (native views, Jetpack Compose, React Native, Flutter), and the compositor's layers. Started from a quick settings tile, it outlines the boxes over the app in front, coloured by depth; its page walks the tree and turns it as planes. |
 
 ## How it is put together
 
@@ -27,6 +28,11 @@ The dock beside the camera is drawn through an accessibility service (`dock/Dock
 takes every touch on its strip from a window drawn over apps and an accessibility service's window is the one kind
 Android draws above it. The service asks for no events and reads nothing on the screen.
 
+X-ray has an accessibility service of its own (`xray/XrayAccess.kt`), apart from the dock's, so the dock's words stay
+true. Switched on it asks for no events and reads nothing; started from X-ray's tile it reads the app in front on a
+thread of its own, draws the outlines in two windows of its own (`xray/Overlay.kt`), and holds the last reading in
+memory only. It never reads a password field, takes no picture of the screen and has no network permission.
+
 Where a phone's camera is on its screen comes from the phone's own cut-out; for a screen that reports none (a Fold's
 inner screen) it is kept in `Phones` in `dock/Dock.kt`.
 
@@ -41,7 +47,7 @@ The release build is signed with the debug key: it is for installing by hand, no
 
 ## Setting up on a phone
 
-The app's first page walks through the permissions. Frames needs one more, given once from a computer:
+The app's first page walks through the permissions. Frames, and X-ray's compositor layers, need one more, given once from a computer:
 
 ```bash
 adb shell pm grant com.mattssoftware.tools android.permission.DUMP

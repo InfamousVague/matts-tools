@@ -23,7 +23,7 @@ class FakePhone {
     'on': false, 'forMs': 0, 'why': 'tap', 'bright': false, 'endOnBattery': true, 'batteryFloor': 20, 'endUnplugged': true, 'endFolded': true,
     'startCharging': false, 'apps': <String>[], 'appNames': <String>[], 'seesApps': true, 'method': 'overlay', 'overlay': true, 'system': false, //
   };
-  final Map<String, Object?> granted = {'notifications': true, 'overlay': true, 'usage': true, 'access': false, 'write': false, 'dump': true, 'secure': true};
+  final Map<String, Object?> granted = {'notifications': true, 'overlay': true, 'usage': true, 'access': false, 'write': false, 'dump': true, 'secure': true, 'xray': false};
   final Map<String, Object?> build = {'version': '1.0.1', 'code': 2, 'package': 'com.mattssoftware.tools', 'device': 'samsung SM-F971U', 'android': '17 (37)', 'installed': '2026-10-12 18:30'};
   double? celsius = 31.4;
 
@@ -36,6 +36,22 @@ class FakePhone {
     {'package': 'com.example.maps', 'label': 'Maps'},
     {'package': 'com.example.reader', 'label': 'Reader'},
   ];
+
+  /// What X-ray lists to choose among (Matt's Tools too, as the phone's side does), and what it answers of each by package: a missing one
+  /// is an app the phone cannot read.
+  final List<Map<String, String>> xrayApps = [
+    {'package': 'com.example.maps', 'label': 'Maps'},
+    {'package': 'com.mattssoftware.tools', 'label': 'Matt\'s Tools'},
+  ];
+  final Map<String, Map<String, Object?>> anatomies = {};
+
+  /// X-ray's switch and its last reading (xray/Door.kt `state`): on, not started, nothing captured. A test turns the
+  /// switch off or puts a capture here; `forget` drops it, as the phone's side does.
+  final Map<String, Object?> xrayState = {'on': true, 'running': false, 'dump': true, 'capture': null};
+  Map<String, Object?>? xrayCapture;
+
+  /// Whether the last `private` call asked for no Recents picture.
+  bool privateOn = false;
 
   /// The calls of [method], oldest first.
   List<MethodCall> of(String method) => [for (final call in calls) if (call.method == method) call];
@@ -62,6 +78,18 @@ class FakePhone {
         return launch;
       case 'apps':
         return apps;
+      case 'xray':
+        final args = call.arguments as Map;
+        if (args['do'] == 'apps') return xrayApps;
+        if (args['do'] == 'anatomy') return anatomies[args['package']] ?? {'error': 'Android would not let Matt\'s Tools read this app\'s package.'};
+        if (args['do'] == 'state') return xrayState;
+        if (args['do'] == 'capture') return xrayCapture;
+        if (args['do'] == 'private') privateOn = args['on'] == true;
+        if (args['do'] == 'forget') {
+          xrayState['capture'] = null;
+          xrayCapture = null;
+        }
+        return null;
       case 'set':
         final args = call.arguments as Map;
         final name = args['name'] as String, value = args['value'];

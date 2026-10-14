@@ -1,0 +1,6 @@
+# Written by hand, not captured from a phone: a Cordova app (cordova-android ConfigXmlParser.java: file:///android_asset/www/)
+# One entry a line, "size name". Each name is from the source named beside it in .new-tool-pr/notes/facts.md section 7.
+1200000 classes.dex
+40000 assets/www/cordova.js
+900 assets/www/index.html
+15000 assets/www/css/index.css

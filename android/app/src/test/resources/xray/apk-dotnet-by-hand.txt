@@ -1,0 +1,5 @@
+# Written by hand, not captured from a phone: .NET for Android (dotnet/android Documentation/project-docs/ApkSharedLibraries.md: libmonodroid.so, libassembly-store.so)
+# One entry a line, "size name". Each name is from the source named beside it in .new-tool-pr/notes/facts.md section 7.
+2000000 classes.dex
+700000 lib/arm64-v8a/libmonodroid.so
+9000000 lib/arm64-v8a/libassembly-store.so

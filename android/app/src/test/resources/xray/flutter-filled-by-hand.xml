@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+<!-- Written by hand, not captured from a phone. A Flutter page with ordinary things on it, as the engine's own
+     bridge gives them (shell/platform/android/io/flutter/view in the Flutter engine): a text field that has been
+     typed into, whose value is set as its text (BaseRoleConfigurator.java configureLabelAndValue), a list, a radio
+     group and a menu item, whose classes are android.widget.ListView, android.widget.RadioGroup and
+     android.view.MenuItem (RoleConfiguratorFactory.java), and a native map view the page embeds, with an id of its
+     own app. The shell above the host is the activity's, as on the emulator's Frames page. -->
+<hierarchy rotation="0">
+<node index="0" text="" resource-id="" class="android.widget.FrameLayout" package="com.example.notes" content-desc="" clickable="false" long-clickable="false" scrollable="false" checkable="false" password="false" bounds="[0,0][1248,1972]" drawing-order="0">
+<node index="0" text="" resource-id="" class="android.widget.LinearLayout" package="com.example.notes" content-desc="" clickable="false" long-clickable="false" scrollable="false" checkable="false" password="false" bounds="[0,0][1248,1972]" drawing-order="1">
+<node index="0" text="" resource-id="android:id/content" class="android.widget.FrameLayout" package="com.example.notes" content-desc="" clickable="false" long-clickable="false" scrollable="false" checkable="false" password="false" bounds="[0,0][1248,1972]" drawing-order="2">
+<node index="0" text="" resource-id="" class="android.widget.FrameLayout" package="com.example.notes" content-desc="" clickable="false" long-clickable="false" scrollable="false" checkable="false" password="false" bounds="[0,0][1248,1972]" drawing-order="1">
+<node index="0" text="" resource-id="" class="android.view.View" package="com.example.notes" content-desc="" clickable="false" long-clickable="false" scrollable="false" checkable="false" password="false" bounds="[0,0][1248,1972]" drawing-order="0">
+<node index="0" text="" resource-id="" class="android.view.View" package="com.example.notes" content-desc="" clickable="false" long-clickable="false" scrollable="false" checkable="false" password="false" bounds="[0,128][1248,1909]" drawing-order="0">
+<node index="0" text="Shopping list" resource-id="" class="android.widget.EditText" package="com.example.notes" content-desc="" clickable="true" long-clickable="true" scrollable="false" checkable="false" password="false" bounds="[48,176][1200,296]" drawing-order="0" />
+<node index="1" text="" resource-id="" class="android.widget.ListView" package="com.example.notes" content-desc="" clickable="false" long-clickable="false" scrollable="true" checkable="false" password="false" bounds="[0,320][1248,800]" drawing-order="0">
+<node index="0" text="" resource-id="" class="android.view.View" package="com.example.notes" content-desc="Milk" clickable="true" long-clickable="false" scrollable="false" checkable="false" password="false" bounds="[0,320][1248,440]" drawing-order="0" />
+<node index="1" text="" resource-id="" class="android.view.View" package="com.example.notes" content-desc="Bread" clickable="true" long-clickable="false" scrollable="false" checkable="false" password="false" bounds="[0,440][1248,560]" drawing-order="0" />
+</node>
+<node index="2" text="" resource-id="" class="android.widget.RadioGroup" package="com.example.notes" content-desc="" clickable="false" long-clickable="false" scrollable="false" checkable="false" password="false" bounds="[0,820][1248,1060]" drawing-order="0">
+<node index="0" text="" resource-id="" class="android.widget.RadioButton" package="com.example.notes" content-desc="Light" clickable="true" long-clickable="false" scrollable="false" checkable="true" password="false" bounds="[0,820][1248,940]" drawing-order="0" />
+<node index="1" text="" resource-id="" class="android.widget.RadioButton" package="com.example.notes" content-desc="Dark" clickable="true" long-clickable="false" scrollable="false" checkable="true" password="false" bounds="[0,940][1248,1060]" drawing-order="0" />
+</node>
+<node index="3" text="" resource-id="" class="android.view.MenuItem" package="com.example.notes" content-desc="Delete" clickable="true" long-clickable="false" scrollable="false" checkable="false" password="false" bounds="[800,176][1200,296]" drawing-order="0" />
+<node index="4" text="" resource-id="com.example.notes:id/map" class="android.widget.FrameLayout" package="com.example.notes" content-desc="" clickable="false" long-clickable="false" scrollable="false" checkable="false" password="false" bounds="[0,1100][1248,1700]" drawing-order="0">
+<node index="0" text="" resource-id="" class="android.view.View" package="com.example.notes" content-desc="Map pin" clickable="true" long-clickable="false" scrollable="false" checkable="false" password="false" bounds="[600,1380][660,1440]" drawing-order="0" />
+</node>
+<node index="5" text="" resource-id="" class="android.widget.Button" package="com.example.notes" content-desc="Save" clickable="true" long-clickable="false" scrollable="false" checkable="false" password="false" bounds="[48,1720][1200,1849]" drawing-order="0" />
+</node>
+</node>
+</node>
+</node>
+</node>
+</node>
+</hierarchy>

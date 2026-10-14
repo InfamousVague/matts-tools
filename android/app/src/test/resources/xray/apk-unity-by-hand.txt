@@ -1,0 +1,7 @@
+# Written by hand, not captured from a phone: a Unity IL2CPP app (docs.unity3d.com/Manual/android-symbols.html: libmain, libunity, libil2cpp)
+# One entry a line, "size name". Each name is from the source named beside it in .new-tool-pr/notes/facts.md section 7.
+900000 classes.dex
+12000 lib/arm64-v8a/libmain.so
+24000000 lib/arm64-v8a/libunity.so
+30000000 lib/arm64-v8a/libil2cpp.so
+4000000 assets/bin/Data/data.unity3d

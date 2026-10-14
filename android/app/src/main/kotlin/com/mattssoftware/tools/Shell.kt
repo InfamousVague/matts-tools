@@ -78,6 +78,7 @@ class HomeActivity : com.mattssoftware.frames.MainActivity() {
             else @Suppress("DEPRECATION") intent.getParcelableExtra(Intent.EXTRA_COMPONENT_NAME)
         return when (tile?.className) {
             FramesTile::class.java.name -> "settings/frames"
+            com.mattssoftware.xray.XrayTile::class.java.name -> "settings/xray"
             AwakeTile::class.java.name, BrightTile::class.java.name -> "settings/amphetamine"
             else -> "settings"
         }
@@ -113,6 +114,7 @@ class HomeActivity : com.mattssoftware.frames.MainActivity() {
             "openSetting" -> { openSetting(call.arguments as String); result.success(null) }
             "apps" -> Thread { val all = apps(); runOnUiThread { result.success(all) } }.start()
             "launch" -> { result.success(page); page = null }
+            "xray" -> com.mattssoftware.xray.Door.answer(this, call, result)
             else -> super.answer(call, result)
         }
     }
@@ -149,6 +151,7 @@ class HomeActivity : com.mattssoftware.frames.MainActivity() {
             "granted" to mapOf(
                 "notifications" to Granted.notifications(this), "overlay" to overlay, "usage" to Granted.usage(this), "access" to Granted.access(this),
                 "write" to Settings.System.canWrite(this), "dump" to Granted.dump(this), "secure" to com.mattssoftware.frames.Access.secure(this),
+                "xray" to Granted.xray(this),
             ),
             "build" to mapOf(
                 "version" to (info.versionName ?: ""), "code" to info.longVersionCode, "package" to packageName,

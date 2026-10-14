@@ -8,6 +8,8 @@ import '../pages.dart';
 import '../settings/settings_sections.dart';
 import '../tools.dart';
 import '../tools_pages.dart';
+import '../xray/xray_page.dart';
+import '../xray/xray_tree.dart';
 import 'top_bar.dart';
 import 'trail.dart';
 import 'visited.dart';
@@ -18,6 +20,8 @@ const Place framesPlace = 'frames';
 const Place diagnosticsPlace = 'frames/diagnostics';
 const Place amphetaminePlace = 'amphetamine';
 const Place toastyPlace = 'toasty';
+const Place xrayPlace = 'xray';
+const Place xrayTreePlace = 'xray/tree';
 const Place settingsPlace = 'settings';
 
 /// A page of Settings by its section: `settings/dock`.
@@ -27,7 +31,7 @@ Place settingsPlaceOf(String id) => '$settingsPlace/$id';
 String? settingsIdOf(Place place) => place.startsWith('$settingsPlace/') ? place.substring(settingsPlace.length + 1) : null;
 
 bool _fixed(Place place) =>
-    place == homePlace || place == framesPlace || place == diagnosticsPlace || place == amphetaminePlace || place == toastyPlace || place == settingsPlace || settingsIds.contains(settingsIdOf(place));
+    place == homePlace || place == framesPlace || place == diagnosticsPlace || place == amphetaminePlace || place == toastyPlace || place == xrayPlace || place == xrayTreePlace || place == settingsPlace || settingsIds.contains(settingsIdOf(place));
 
 /// The app's one frame: whichever page is the place, under the bar ([TopBar]), with the trail of where he has been
 /// ([TrailController]) that the bar's arrows and Android's back walk.
@@ -65,6 +69,10 @@ class AppShellState extends State<AppShell> with WidgetsBindingObserver {
   Place get place => _walk.trail.place ?? homePlace;
   bool get canBack => _walk.canBack;
   bool get canOn => _walk.canOn;
+
+  /// The place ahead on the trail, where a step back has just been taken from it; null where there is none. A page
+  /// tells by it a step back to it from an arrival.
+  Place? get ahead => _walk.trail.at + 1 < _walk.trail.places.length ? _walk.trail.places[_walk.trail.at + 1] : null;
 
   @override
   void initState() {
@@ -139,6 +147,8 @@ class AppShellState extends State<AppShell> with WidgetsBindingObserver {
     if (place == diagnosticsPlace) return const DiagScreen();
     if (place == amphetaminePlace) return const AmphetaminePage();
     if (place == toastyPlace) return const ToastyPage();
+    if (place == xrayPlace) return const XrayPage();
+    if (place == xrayTreePlace) return const XrayTreePage();
     if (place == settingsPlace || settingsIdOf(place) != null) return ToolsSettings(activeId: settingsIdOf(place), split: widget.split);
     return const SizedBox.shrink();
   }
@@ -180,6 +190,7 @@ class AppShellState extends State<AppShell> with WidgetsBindingObserver {
     if (here == amphetaminePlace) return settingsPlaceOf('amphetamine');
     if (here == toastyPlace) return settingsPlaceOf('toasty');
     if (here.startsWith(framesPlace)) return settingsPlaceOf('frames');
+    if (here.startsWith(xrayPlace)) return settingsPlaceOf('xray');
     return settingsPlace;
   }
 }
