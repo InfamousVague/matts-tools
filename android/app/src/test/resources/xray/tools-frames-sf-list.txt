@@ -1,0 +1,120 @@
+RequestedLayerState{WindowedMagnification:0:31#1 parentId=45}
+RequestedLayerState{HideDisplayCutout:0:14#2 parentId=1}
+RequestedLayerState{OneHanded:0:14#3 parentId=2}
+RequestedLayerState{AppZoomOut:0:0#4 parentId=3}
+RequestedLayerState{Leaf:0:0#5 parentId=4}
+RequestedLayerState{Leaf:1:1#6 parentId=3 z=1}
+RequestedLayerState{AppZoomOut:2:14#7 parentId=3 z=2}
+RequestedLayerState{DefaultTaskDisplayArea#8 parentId=7}
+RequestedLayerState{Leaf:3:12#9 parentId=7 z=1}
+RequestedLayerState{ImePlaceholder:13:14#10 parentId=7 z=2}
+RequestedLayerState{ImeContainer#11 parentId=781 relativeParentId=782 z=1}
+RequestedLayerState{OneHanded:15:15#12 parentId=1 z=1}
+RequestedLayerState{Leaf:15:15#13 parentId=12}
+RequestedLayerState{HideDisplayCutout:16:16#14 parentId=1 z=2}
+RequestedLayerState{OneHanded:16:16#15 parentId=14}
+RequestedLayerState{AppZoomOut:16:16#16 parentId=15}
+RequestedLayerState{Leaf:16:16#17 parentId=16}
+RequestedLayerState{OneHanded:17:17#18 parentId=1 z=3}
+RequestedLayerState{Leaf:17:17#19 parentId=18}
+RequestedLayerState{HideDisplayCutout:18:23#20 parentId=1 z=4}
+RequestedLayerState{OneHanded:18:23#21 parentId=20}
+RequestedLayerState{AppZoomOut:18:18#22 parentId=21}
+RequestedLayerState{Leaf:18:18#23 parentId=22}
+RequestedLayerState{Leaf:19:19#24 parentId=21 z=1}
+RequestedLayerState{AppZoomOut:20:21#25 parentId=21 z=2}
+RequestedLayerState{Leaf:20:21#26 parentId=25}
+RequestedLayerState{Leaf:22:22#27 parentId=21 z=3}
+RequestedLayerState{AppZoomOut:23:23#28 parentId=21 z=4}
+RequestedLayerState{Leaf:23:23#29 parentId=28}
+RequestedLayerState{Leaf:24:25#30 parentId=1 z=5}
+RequestedLayerState{HideDisplayCutout:26:31#31 parentId=1 z=6}
+RequestedLayerState{OneHanded:26:31#32 parentId=31}
+RequestedLayerState{AppZoomOut:26:31#33 parentId=32}
+RequestedLayerState{Leaf:26:31#34 parentId=33}
+RequestedLayerState{HideDisplayCutout:32:35#35 parentId=45 z=1}
+RequestedLayerState{OneHanded:32:32#36 parentId=35}
+RequestedLayerState{AppZoomOut:32:32#37 parentId=36}
+RequestedLayerState{Leaf:32:32#38 parentId=37}
+RequestedLayerState{AppZoomOut:33:33#39 parentId=35 z=1}
+RequestedLayerState{Leaf:33:33#40 parentId=39}
+RequestedLayerState{OneHanded:34:35#41 parentId=35 z=2}
+RequestedLayerState{AppZoomOut:34:35#42 parentId=41}
+RequestedLayerState{Leaf:34:35#43 parentId=42}
+RequestedLayerState{Leaf:36:36#44 parentId=45 z=2}
+RequestedLayerState{Display 0 name="Built-in Screen"#45}
+RequestedLayerState{Display Overlays#46 parentId=45 z=2147483647}
+RequestedLayerState{Input Overlays#47 parentId=45 z=2147483646}
+RequestedLayerState{Accessibility Overlays#48 parentId=45 z=2147483645}
+RequestedLayerState{Task=1#49 parentId=8}
+RequestedLayerState{Task=2#50 parentId=49}
+RequestedLayerState{ActivityRecord{266190337 u0 com.google.android.apps.nexuslauncher/.NexusLauncherActivity#51 parentId=50 z=1}
+RequestedLayerState{91dd4da ActivityRecordInputSink com.google.android.apps.nexuslauncher/.NexusLauncherActivity#52 parentId=51 z=-2147483648}
+RequestedLayerState{e496f63 com.mattssoftware.tools/com.mattssoftware.tools.HomeActivity#686 parentId=678}
+RequestedLayerState{home_task_overlay_container#54 parentId=49 z=2147483647}
+RequestedLayerState{WindowToken{eb28174 type=2011 android.os.Binder@a8e3547}#87 parentId=11}
+RequestedLayerState{a2481ef ActivityRecordInputSink com.mattssoftware.tools/.HomeActivity#771 parentId=766 z=-2147483648}
+RequestedLayerState{TaskFragment{adc814c mode=fullscreen}#726 parentId=50}
+RequestedLayerState{Task=3#58 parentId=8 z=1}
+RequestedLayerState{Task=4#59 parentId=58}
+RequestedLayerState{Task=5#60 parentId=58 z=1}
+RequestedLayerState{WindowToken{c53d28d type=2038 android.os.BinderProxy@ee94406}#61 parentId=9}
+RequestedLayerState{d7c6251 ShellDropTarget#62 parentId=61}
+RequestedLayerState{Dim layer#63 parentId=59 z=2147483647}
+RequestedLayerState{Dim layer#64 parentId=60 z=2147483647}
+RequestedLayerState{WallpaperWindowToken{63b8a62 showWhenLocked=false}#65 parentId=6}
+RequestedLayerState{6de4f46 com.android.systemui.wallpapers.ImageWallpaper#66 parentId=65}
+RequestedLayerState{com.android.systemui.wallpapers.ImageWallpaper#67 parentId=66}
+RequestedLayerState{Wallpaper BBQ wrapper#68 parentId=67}
+RequestedLayerState{WindowToken{8ed6be8 type=2024 android.os.BinderProxy@ed9310b}#69 z=1073741826}
+RequestedLayerState{454b683 ScreenDecorOverlay#70 parentId=69}
+RequestedLayerState{WindowToken{1396b2e type=2024 android.os.BinderProxy@5c029a9}#71 z=1073741826}
+RequestedLayerState{7aed6cf ScreenDecorOverlayBottom#72 parentId=71}
+RequestedLayerState{Surface(name=ebff5c4 InputMethod)/@0x877cbe2 - animation-leash of insets_animation#792 parentId=87}
+RequestedLayerState{ScreenDecorOverlay#74 parentId=70}
+RequestedLayerState{ScreenDecorOverlayBottom#75 parentId=72}
+RequestedLayerState{[Gesture Monitor] edge-swipe#76 parentId=47 z=1}
+RequestedLayerState{WindowToken{ee925f8 type=2024 android.os.BinderProxy@486495b}#77 parentId=30 z=1}
+RequestedLayerState{8a6ead1 EdgeBackGestureHandler0#78 parentId=77}
+RequestedLayerState{WindowToken{8af4cc3 type=2040 android.os.BinderProxy@6bb297d}#79 parentId=19}
+RequestedLayerState{dd94940 NotificationShade#80 parentId=79}
+RequestedLayerState{WindowToken{55c1bca type=2000 android.os.BinderProxy@4a9b96c}#81 parentId=13}
+RequestedLayerState{eb913b StatusBar#82 parentId=784}
+RequestedLayerState{Surface(name=Task=1)/@0x872a0fe_transition-leash#741 z=6}
+RequestedLayerState{[Gesture Monitor] swipe-up#777 parentId=47 z=1}
+RequestedLayerState{StatusBar#90 parentId=82}
+RequestedLayerState{IME Handwriting Surface#91 parentId=47 z=2}
+RequestedLayerState{Surface(name=Task=20)/@0xc74eaac_transition-leash#742 z=8}
+RequestedLayerState{ebff5c4 InputMethod#93 parentId=792}
+RequestedLayerState{Surface(name=WallpaperWindowToken{63b8a62 showWhenLocked=false})/@0xdd3cf0a_transition-leash#743 z=-2}
+RequestedLayerState{Taskbar#99 parentId=98}
+RequestedLayerState{Input Consumer recents_animation_input_consumer#96}
+RequestedLayerState{WindowToken{60a3237 type=2019 android.os.BinderProxy@6008978}#97 parentId=30}
+RequestedLayerState{d442cd1 Taskbar#98 parentId=785}
+RequestedLayerState{f2c815c ActivityRecordInputSink com.mattssoftware.tools/.SetupActivity#696 parentId=685 z=-2147483648}
+RequestedLayerState{Matt's Software Dock#725 parentId=724}
+RequestedLayerState{ActivityRecord{243616869 u0 com.mattssoftware.tools/.SetupActivity#685 parentId=677 z=1}
+RequestedLayerState{d36500f ActivityRecordInputSink com.mattssoftware.tools/.HomeActivity#684 parentId=678 z=-2147483648}
+RequestedLayerState{Background for 217b6d7 SurfaceView[com.mattssoftware.tools/com.mattssoftware.frames.MainActivity]#789 parentId=787 relativeParentId=783 z=-2147483648}
+RequestedLayerState{6d033c9 Matt's Software Dock#724 parentId=723}
+RequestedLayerState{Task=20#677 parentId=8 z=3}
+RequestedLayerState{ActivityRecord{119462044 u0 com.mattssoftware.tools/.HomeActivity#678 parentId=677}
+RequestedLayerState{bbccc74 com.android.settings/com.android.settings.Settings#752 parentId=746}
+RequestedLayerState{217b6d7 SurfaceView[com.mattssoftware.tools/com.mattssoftware.frames.MainActivity](BLAST)#788 parentId=787}
+RequestedLayerState{WindowToken{59a3def type=2038 android.os.BinderProxy@21367db}#723 parentId=9 z=1}
+RequestedLayerState{6305027 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity#714 parentId=51}
+RequestedLayerState{[Gesture Monitor] minus-one#713 parentId=726 z=2147483647}
+RequestedLayerState{25d8df3 com.mattssoftware.tools/com.mattssoftware.tools.SetupActivity#730 parentId=685}
+RequestedLayerState{ActivityRecord{251417852 u0 com.mattssoftware.tools/.HomeActivity#766 parentId=677 z=2}
+RequestedLayerState{dc35b05 ActivityRecordInputSink com.mattssoftware.tools/com.mattssoftware.frames.MainActivity#791 parentId=781 z=-2147483648}
+RequestedLayerState{Task=21#745 parentId=8 z=2}
+RequestedLayerState{ActivityRecord{182159558 u0 com.android.settings/.Settings#746 parentId=745}
+RequestedLayerState{6b85ea1 ActivityRecordInputSink com.android.settings/.homepage.SettingsHomepageActivity#750 parentId=746 z=-2147483648}
+RequestedLayerState{b60077e com.mattssoftware.tools/com.mattssoftware.tools.HomeActivity#773 parentId=766}
+RequestedLayerState{ActivityRecord{214398810 u0 com.mattssoftware.tools/com.mattssoftware.frames.MainActivity#781 parentId=677 z=3}
+RequestedLayerState{12a0f75 com.mattssoftware.tools/com.mattssoftware.frames.MainActivity#782 parentId=781}
+RequestedLayerState{com.mattssoftware.tools/com.mattssoftware.frames.MainActivity#783 parentId=782}
+RequestedLayerState{Surface(name=eb913b StatusBar)/@0x72e25b1 - animation-leash of insets_animation#784 parentId=81}
+RequestedLayerState{Surface(name=d442cd1 Taskbar)/@0xd51ad71 - animation-leash of insets_animation#785 parentId=97}
+RequestedLayerState{Bounds for - com.mattssoftware.tools/com.mattssoftware.frames.MainActivity#786 parentId=783}
+RequestedLayerState{217b6d7 SurfaceView[com.mattssoftware.tools/com.mattssoftware.frames.MainActivity]#787 parentId=786 relativeParentId=783 z=-2}

@@ -33,20 +33,26 @@ import java.util.Locale
 class Capture(
     val pkg: String, val label: String, val at: Long, val width: Int, val height: Int, val rotation: Int,
     val reading: XrayTree.Reading, val kinds: XrayTree.Kinds, val window: Int,
+    /** The app's compositor layers (Layers.kt), where Layers is on or was on for this app, or Open read them. */
+    @Volatile var layers: Layers.Read? = null,
 ) {
     @Volatile var picked: Int? = null
+
+    /** The compositor showed the app's Flutter surface. */
+    val surface get() = layers?.layers?.any { it.kind == "surface" } == true
 
     /** What X-ray's page shows of it before it is opened (lib/xray/xray.dart `CaptureSummary`). */
     fun summary(): Map<String, Any?> = mapOf(
         "package" to pkg, "label" to label, "count" to reading.boxes.size, "windows" to 1, "inspectors" to reading.inspectors,
         "at" to at, "picked" to picked, "cut" to reading.cut,
+        "layers" to layers?.layers?.map { it.toMap() }, "layersWhy" to layers?.why,
     )
 
-    /** The whole of it, for the page's tree (package 4). Layers come with the compositor's reader. */
+    /** The whole of it, for the page's tree (package 4). */
     fun toMap(): Map<String, Any?> = mapOf(
         "package" to pkg, "label" to label, "at" to at, "width" to width, "height" to height, "rotation" to rotation,
         "boxes" to reading.boxes.map { it.toMap() }, "inspectors" to reading.inspectors, "others" to kinds.others, "cut" to reading.cut,
-        "layers" to null, "layersWhy" to null, "picked" to picked,
+        "layers" to layers?.layers?.map { it.toMap() }, "layersWhy" to layers?.why, "picked" to picked,
     )
 }
 
@@ -70,6 +76,12 @@ class XrayAccess : AccessibilityService() {
     /** Started from the tile and drawing. */
     var on = false
         private set
+
+    /** The bar's Layers: the compositor's surfaces are read and outlined instead of the tree. */
+    @Volatile var layersOn = false
+        private set
+    /** The app's layers last read, kept for the next readings of the same app (the Flutter host's card names its surface). */
+    @Volatile private var lastLayers: Layers.Read? = null
 
     // Counts for the log and dumpsys: events and readings while on, and while idle since it last stopped.
     private var events = 0
@@ -188,18 +200,43 @@ class XrayAccess : AccessibilityService() {
         if (!keep) capture = null
         if (!on) return
         on = false
+        layersOn = false; lastLayers = null
         main.removeCallbacks(readNow)
         waiting = false; again = false
         overlay?.hide(); overlay = null
         thread?.quitSafely(); thread = null; work = null
         idle()
-        Log.i(TAG, "stopped: $events events, $readings readings while on")
+        Log.i(TAG, "stopped: $events events, $readings readings, ${Layers.reads} compositor readings while on")
+        Layers.forget()
         idleSince = System.currentTimeMillis(); idleEvents = 0
         tile()
     }
 
-    /** Open: what was drawn goes, reading stops, the reading is kept, and X-ray's page opens on it. */
+    /** Layers on the bar: on, the compositor is read at once and with each reading after, at most once a second. */
+    fun layers(on: Boolean) {
+        if (!this.on) return
+        layersOn = on
+        if (on) schedule(0L)
+    }
+
+    /**
+     * Open: the compositor is read once for the page (on the reading thread, after any reading under way), then what was
+     * drawn goes, reading stops, the reading is kept, and X-ray's page opens on it.
+     */
     fun open() {
+        val handler = work
+        val c = capture
+        if (handler == null || c == null) { show(); return }
+        handler.post {
+            val read = runCatching { Layers.read(this, c.pkg, c.kinds.flutter) }.getOrNull()
+            main.post {
+                capture?.let { now -> if (now.pkg == c.pkg && read != null) now.layers = read }
+                show()
+            }
+        }
+    }
+
+    private fun show() {
         stop(true)
         runCatching { startActivity(com.mattssoftware.tools.Shell.intent(this, "xray").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
             .onFailure { Log.i(TAG, "open: ${it.javaClass.simpleName}") }
@@ -239,6 +276,7 @@ class XrayAccess : AccessibilityService() {
                         // A box picked before keeps its pick where the same box is still there.
                         capture?.let { old -> old.picked?.let { p -> got.picked = same(old.reading.boxes.getOrNull(p), got.reading.boxes) } }
                         capture = got
+                        got.layers?.let { lastLayers = it }
                         appWindow = got.window
                         overlay?.draw(got)
                     }
@@ -264,11 +302,12 @@ class XrayAccess : AccessibilityService() {
         val kinds = Anatomy.kinds(this, pkg)
         val ids = intArrayOf(0, 0)
         val reading = XrayTree.read(Node(root, ids), kinds)
+        val layers = if (layersOn) Layers.read(this, pkg, kinds.flutter) else lastLayers?.takeIf { it.pkg == pkg }
         val label = runCatching { packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString() }.getOrDefault(pkg)
         val (wide, tall, turn) = screen()
         Log.i(TAG, "capture: ${reading.boxes.size} boxes, 1 window, ${SystemClock.uptimeMillis() - started} ms${if (reading.cut) ", cut short" else ""}")
         if (!idsCounted) { idsCounted = true; Log.i(TAG, "ids: ${ids[0]} empty, ${ids[1]} null") }
-        return Capture(pkg, label, System.currentTimeMillis(), wide, tall, turn, reading, kinds, window.id)
+        return Capture(pkg, label, System.currentTimeMillis(), wide, tall, turn, reading, kinds, window.id, layers)
     }
 
     private fun screen(): Triple<Int, Int, Int> {

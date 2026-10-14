@@ -84,6 +84,9 @@ class XrayTreeTest {
         // Flutter leaves drawing order at 0: depth comes from the tree.
         assertEquals(9, diagnostics.depth)
         assertEquals("Flutter view: it draws to a surface of its own", XrayTree.card(host, flutter).first())
+        // Once the compositor has shown the app's Flutter surface (LayerParse.kt), the host names it.
+        assertEquals("Flutter view: it draws to the Flutter surface", XrayTree.card(host, flutter, surface = true).first())
+        assertEquals("Flutter, semantics node", XrayTree.card(diagnostics, flutter, surface = true).first())
         val card = XrayTree.card(diagnostics, flutter)
         assertEquals("Flutter, semantics node", card[0])
         assertTrue(card.contains("Widget names are not in a release build"))

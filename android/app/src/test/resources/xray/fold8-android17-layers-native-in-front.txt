@@ -1,0 +1,265 @@
+RequestedLayerState{[BBQ] drag surface#8372#8373 parentId=8372 !handle}
+RequestedLayerState{31c8a49 Bouncer#131 parentId=130}
+RequestedLayerState{WindowedMagnification:0:31#3 parentId=32}
+RequestedLayerState{OneHanded:0:23#4 parentId=3}
+RequestedLayerState{AppZoomOut:0:0#5 parentId=4}
+RequestedLayerState{Leaf:0:0#6 parentId=5}
+RequestedLayerState{RemoteWallpaperAnim:1:1#7 parentId=4 z=1}
+RequestedLayerState{Leaf:1:1#8 parentId=7}
+RequestedLayerState{AppZoomOut:2:14#9 parentId=4 z=2}
+RequestedLayerState{DefaultTaskDisplayArea_d0#10 parentId=9}
+RequestedLayerState{ChangeLeashAnchor#11 parentId=10 z=23}
+RequestedLayerState{FloatingLeashAnchor#12 parentId=10 z=24}
+RequestedLayerState{Leaf:3:12#13 parentId=9 z=1}
+RequestedLayerState{ImePlaceholder:13:14#14 parentId=9 z=2}
+RequestedLayerState{ImeContainer#15 parentId=1498 relativeParentId=1514 z=1}
+RequestedLayerState{Leaf:15:15#16 parentId=4 z=3}
+RequestedLayerState{AppZoomOut:16:16#17 parentId=4 z=4}
+RequestedLayerState{Leaf:16:16#18 parentId=17}
+RequestedLayerState{Leaf:17:19#19 parentId=4 z=5}
+RequestedLayerState{AppZoomOut:20:22#20 parentId=4 z=6}
+RequestedLayerState{Leaf:20:22#21 parentId=20}
+RequestedLayerState{Leaf:23:23#22 parentId=4 z=7}
+RequestedLayerState{Leaf:24:25#23 parentId=3 z=1}
+RequestedLayerState{OneHanded:26:31#24 parentId=3 z=2}
+RequestedLayerState{Leaf:26:31#25 parentId=24}
+RequestedLayerState{OneHanded:32:32#26 parentId=32 z=1}
+RequestedLayerState{Leaf:32:32#27 parentId=26}
+RequestedLayerState{Leaf:33:33#28 parentId=32 z=2}
+RequestedLayerState{OneHanded:34:35#29 parentId=32 z=3}
+RequestedLayerState{Leaf:34:35#30 parentId=29}
+RequestedLayerState{Leaf:36:36#31 parentId=32 z=4}
+RequestedLayerState{Display 0 name="Built-in Screen"#32}
+RequestedLayerState{Display Overlays#33 parentId=32 z=2147483647}
+RequestedLayerState{Pointer Overlays#34 parentId=33 z=351000}
+RequestedLayerState{Input Overlays#35 parentId=32 z=2147483646}
+RequestedLayerState{PointerEventDispatcherOverlay0#36 parentId=35 z=2147483647}
+RequestedLayerState{Accessibility Overlays#37 parentId=32 z=2147483645}
+RequestedLayerState{WindowedMagnification:0:31#38 parentId=48}
+RequestedLayerState{Leaf:0:1#39 parentId=38}
+RequestedLayerState{DefaultTaskDisplayArea_d1#40 parentId=38 z=1}
+RequestedLayerState{ChangeLeashAnchor#41 parentId=40}
+RequestedLayerState{FloatingLeashAnchor#42 parentId=40 z=1}
+RequestedLayerState{Leaf:3:12#43 parentId=38 z=2}
+RequestedLayerState{ImePlaceholder:13:14#44 parentId=38 z=3}
+RequestedLayerState{ImeContainer#45 parentId=44 relativeParentId=44 z=1}
+RequestedLayerState{Leaf:15:31#46 parentId=38 z=4}
+RequestedLayerState{Leaf:32:36#47 parentId=48 z=1}
+RequestedLayerState{Display 1 name="Built-in Screen"#48 layerStack=1}
+RequestedLayerState{Display Overlays#49 parentId=48 z=2147483647}
+RequestedLayerState{Pointer Overlays#50 parentId=49 z=351000}
+RequestedLayerState{Input Overlays#51 parentId=48 z=2147483646}
+RequestedLayerState{PointerEventDispatcherOverlay1#52 parentId=51 z=2147483647}
+RequestedLayerState{Accessibility Overlays#53 parentId=48 z=2147483645}
+RequestedLayerState{Task=1#54 parentId=10}
+RequestedLayerState{WindowToken{c73e502 type=2009 android.os.BinderProxy@3dbd64d}#130 parentId=19 z=2}
+RequestedLayerState{234b27e NotificationShade#129 parentId=128}
+RequestedLayerState{d34691b StatusBar#126 parentId=9185}
+RequestedLayerState{WindowToken{ff84a5d type=2000 android.os.BinderProxy@2f95f2b}#125 parentId=16}
+RequestedLayerState{WindowToken{62a9356 type=2040 android.os.BinderProxy@be83c00}#128 parentId=19}
+RequestedLayerState{[Gesture Monitor] edge-swipe#124 parentId=35 z=1}
+RequestedLayerState{9361ea7 ActivityRecordInputSink com.sec.android.app.launcher/.Launcher#169 parentId=163 z=-2147483648}
+RequestedLayerState{c5db006 ActivityRecordInputSink com.example.app1/com.example.app1.Main#390 parentId=388 z=-2147483648}
+RequestedLayerState{home_task_overlay_container#65 parentId=54 z=2147483647}
+RequestedLayerState{[BBQ] drag surface#3127#3128 parentId=3127 !handle}
+RequestedLayerState{81a4de5 SecondaryHomeHandle0#133 parentId=132}
+RequestedLayerState{69deea com.sec.android.app.launcher/com.sec.android.app.launcher.activities.LauncherActivity#164 parentId=163}
+RequestedLayerState{Task=3(Bubbles)#70 parentId=10 z=1}
+RequestedLayerState{WallpaperWindowToken{7007b6a}#71 parentId=8 z=1}
+RequestedLayerState{WallpaperWindowToken{ed8b89c}#72 parentId=8}
+RequestedLayerState{WallpaperWindowToken{2bc9701}#73 parentId=8 z=2}
+RequestedLayerState{WallpaperWindowToken{df8e856}#74 parentId=8 z=3}
+RequestedLayerState{Task=4(SplitRoot)#75 parentId=10 z=17}
+RequestedLayerState{Task=5(main)#76 parentId=75 z=2}
+RequestedLayerState{Task=6(side)#77 parentId=75 z=1}
+RequestedLayerState{Task=7(cell)#78 parentId=75}
+RequestedLayerState{bb65bdd com.samsung.android.wallpaper.live.unified.UnifiedWallpaperService#79 parentId=71}
+RequestedLayerState{WallpaperService-com.samsung.android.wallpaper.live#80 parentId=79}
+RequestedLayerState{Wallpaper Transform wrapper#81 parentId=80}
+RequestedLayerState{Wallpaper BBQ wrapper 18_sub|lock#82 parentId=81}
+RequestedLayerState{Task=0(Bubbles-visibility-barrier)#83 parentId=70}
+RequestedLayerState{WindowToken{ac78798 type=2016 android.os.BinderProxy@e04bf5d}#84 parentId=25 z=2}
+RequestedLayerState{55f010a ShellDropTarget#85 parentId=84}
+RequestedLayerState{Split Background Layer#86 parentId=75 z=-1}
+RequestedLayerState{Dim layer#87 parentId=76 z=2147483646}
+RequestedLayerState{Dim layer#88 parentId=77 z=2147483646}
+RequestedLayerState{WindowToken{26fe94f type=2024 android.os.BinderProxy@9e137ae}#132 parentId=23 z=2}
+RequestedLayerState{VRI-StatusBar$_5675#135 parentId=126}
+RequestedLayerState{Dim layer#91 parentId=78 z=2147483647}
+RequestedLayerState{132e36e com.samsung.android.wallpaper.live.unified.UnifiedWallpaperService#94 parentId=72}
+RequestedLayerState{WallpaperService-com.samsung.android.wallpaper.live#95 parentId=94}
+RequestedLayerState{Wallpaper Transform wrapper#96 parentId=95}
+RequestedLayerState{Wallpaper BBQ wrapper 6_phone|lock#97 parentId=96}
+RequestedLayerState{ColorFade_d1#98 z=1073741825 layerStack=1}
+RequestedLayerState{ColorFade BLAST_d1#99 parentId=98}
+RequestedLayerState{ae78dac com.samsung.android.wallpaper.live.layered.LayeredWallpaperService#100 parentId=73}
+RequestedLayerState{WallpaperService-com.samsung.android.wallpaper.live#101 parentId=100}
+RequestedLayerState{Wallpaper Transform wrapper#102 parentId=101}
+RequestedLayerState{Wallpaper BBQ wrapper 17_sub|system#103 parentId=102}
+RequestedLayerState{WindowToken{493e94b type=2415 android.os.BinderProxy@529d09}#111 parentId=19 z=1}
+RequestedLayerState{6493565 com.samsung.android.wallpaper.live.layered.LayeredWallpaperService#105 parentId=74}
+RequestedLayerState{WallpaperService-com.samsung.android.wallpaper.live#106 parentId=105}
+RequestedLayerState{Wallpaper Transform wrapper#107 parentId=106}
+RequestedLayerState{Wallpaper BBQ wrapper 5_phone|system#108 parentId=107}
+RequestedLayerState{3ff00c5 LockscreenShortcutBlur#112 parentId=111}
+RequestedLayerState{VRI-NavigationBar0$_5675#134 parentId=120}
+RequestedLayerState{[Gesture Monitor] swipe-up#139 parentId=35 z=1}
+RequestedLayerState{VRI-NotificationShade$_5675#136}
+RequestedLayerState{[Gesture Monitor] PalmMotion#118 parentId=35 z=1}
+RequestedLayerState{WindowToken{4b60c75 type=2019 android.os.BinderProxy@d1e415f}#119 parentId=23}
+RequestedLayerState{cd240a NavigationBar0#120 parentId=9188}
+RequestedLayerState{WindowToken{21d63d3 type=2011 android.os.Binder@fe9f8a4}#158 parentId=15}
+RequestedLayerState{WindowToken{99274c8 type=2024 android.os.BinderProxy@cc0e3e5}#122 parentId=23 z=1}
+RequestedLayerState{b22ab12 DisplayBackGestureHandler 0#123 parentId=122}
+RequestedLayerState{VRI-Bouncer$_5675#144}
+RequestedLayerState{d6c88d4 SurfaceView[com.sec.android.app.camera/com.sec.android.app.camera.Camera]@0(BLAST)#6141}
+RequestedLayerState{ActivityRecord{93069140 u0 com.sec.android.app.launcher/.activities.LauncherActivity t4726}#163 parentId=162}
+RequestedLayerState{2fa382e ActivityRecordInputSink com.example.app2/com.example.app2.Main#4679 parentId=4671 z=-2147483648}
+RequestedLayerState{Task=4745#2385 parentId=10 z=11}
+RequestedLayerState{ActivityRecord{194318491 u0 com.google.android.apps.messaging/.ui.ConversationListActivity t4745}#5978 parentId=2385}
+RequestedLayerState{Task=4751#3246 parentId=10 z=5}
+RequestedLayerState{e442bc7 InputMethod#159 parentId=9186}
+RequestedLayerState{Task=4726#162 parentId=54}
+RequestedLayerState{[Gesture Monitor] touchpad-gesture#172 parentId=35 z=1}
+RequestedLayerState{TransientLaunchOverlayToken{350a8b7 token=android.os.BinderProxy@5edd0eb}#173 parentId=13}
+RequestedLayerState{a8efd43 RecentsTransitionOverlay#174 parentId=173}
+RequestedLayerState{Input Consumer recents_animation_input_consumer#175 relativeParentId=183 z=2}
+RequestedLayerState{VRI-RecentsTransitionOverlay$_6131#176 parentId=174}
+RequestedLayerState{WindowToken{870a5a7 type=2024 android.os.BinderProxy@6ad3ca5}#177 parentId=23 z=3}
+RequestedLayerState{2d2a29a TaskbarWindow#178 parentId=9189}
+RequestedLayerState{d7f2b5f com.sec.android.app.launcher/com.android.quickstep.RecentsActivity#202 parentId=182}
+RequestedLayerState{VRI-TaskbarWindow$_6131#180 parentId=178}
+RequestedLayerState{Task=4727#181 parentId=10 z=21}
+RequestedLayerState{ActivityRecord{163074832 u0 com.sec.android.app.launcher/com.android.quickstep.RecentsActivity t4727}#182 parentId=181}
+RequestedLayerState{Task=4728#183 parentId=10 z=20}
+RequestedLayerState{SplitDecorManager#8543 parentId=8542}
+RequestedLayerState{ColorFade_d1_child-surface#415 parentId=98 relativeParentId=98 z=1}
+RequestedLayerState{b647125 com.example.app3/com.example.app3.Main#718 parentId=702}
+RequestedLayerState{ActivityRecord{129065749 u0 com.android.settings/.Settings t4794}#8742 parentId=8746}
+RequestedLayerState{SurfaceControlViewHostAdapter surface#308 z=-1}
+RequestedLayerState{1175822 ActivityRecordInputSink com.mattssoftware.attackfm/.MainActivity#3954 parentId=3950 z=-2147483648}
+RequestedLayerState{f91408 ActivityRecordInputSink com.sec.android.app.myfiles/.ui.MainActivity#4278 parentId=4274 z=-2147483648}
+RequestedLayerState{Task=4739#1497 parentId=10 z=22}
+RequestedLayerState{ActivityRecord{33088756 u0 com.example.app1/com.example.app1.Main t4731}#388 parentId=371}
+RequestedLayerState{SurfaceControlViewHostAdapter surface#194 z=-1}
+RequestedLayerState{fee62e4 ActivityRecordInputSink com.example.app4/.Main#924 parentId=917 z=-2147483648}
+RequestedLayerState{TaskFragment{a6ca18d mode=fullscreen}#8747 parentId=8546 z=1}
+RequestedLayerState{Caption of Task=4728Leash#197 parentId=194}
+RequestedLayerState{Caption of Task=4728#198 parentId=197}
+RequestedLayerState{59ae395 ActivityRecordInputSink com.google.android.apps.messaging/.main.MainActivity#5986 parentId=5978 z=-2147483648}
+RequestedLayerState{103ddd4 ActivityRecordInputSink com.example.app3/.Main#705 parentId=702 z=-2147483648}
+RequestedLayerState{83d50a7 dismiss-button-freeformType_Freeform#5626 parentId=5625}
+RequestedLayerState{ActivityRecord{119628872 u0 com.example.app2/com.example.app2.Main t4738}#3018 parentId=1065}
+RequestedLayerState{8d97aad com.mattssoftware.glyph/com.mattssoftware.glyph.MainActivity#2995 parentId=2994}
+RequestedLayerState{ActivityRecord{36882148 u0 com.google.android.apps.photos/.home.HomeActivity t4769}#6327 parentId=6326}
+RequestedLayerState{ActivityRecord{151242195 u0 com.example.app1/com.example.app1.Main t4731}#505 parentId=371 z=1}
+RequestedLayerState{c8851c2 ActivityRecordInputSink com.sec.android.app.launcher/com.android.quickstep.RecentsActivity#460 parentId=182 z=-2147483648}
+RequestedLayerState{113b510 ActivityRecordInputSink com.example.app1/com.example.app1.Main#513 parentId=505 z=-2147483648}
+RequestedLayerState{drag surface#3127}
+RequestedLayerState{Caption of Task=4730#310 parentId=309}
+RequestedLayerState{84d29ee com.mattssoftware.attackfm/com.mattssoftware.attackfm.MainActivity#3961 parentId=3950}
+RequestedLayerState{Caption of Task=4730Leash#309 parentId=308}
+RequestedLayerState{ff80f2b com.sec.android.gallery3d/com.samsung.android.gallery.app.activity.external.ImageQuickViewActivity#6159 parentId=6158}
+RequestedLayerState{Task=4731#371 parentId=10 z=2}
+RequestedLayerState{dc7069 ActivityRecordInputSink com.example.app5/com.example.app5.Main#3482 parentId=3475 z=-2147483648}
+RequestedLayerState{904e693 com.google.android.apps.photos/com.google.android.apps.photos.home.HomeActivity#6339 parentId=6327}
+RequestedLayerState{Task=4769#6326 parentId=10 z=13}
+RequestedLayerState{WindowToken{60c566 type=2607 android.os.BinderProxy@29029c1}#5625 parentId=13 z=1}
+RequestedLayerState{ActivityRecord{44691625 u0 com.sec.android.gallery3d/com.samsung.android.gallery.app.activity.external.ImageQuickViewActivity t4757}#6158 parentId=4719 z=1}
+RequestedLayerState{Dim Layer for - Task=4735#4786 parentId=916 !handle}
+RequestedLayerState{Dim Layer for - Task=4735#4918 parentId=916 !handle}
+RequestedLayerState{e9e5b1a com.samsung.android.spay.pay.HintService#8990 parentId=8989}
+RequestedLayerState{Task=4732#600 parentId=10 z=3}
+RequestedLayerState{ActivityRecord{220626422 u0 com.example.app6/.Main t4732}#601 parentId=600}
+RequestedLayerState{drag surface#8372}
+RequestedLayerState{c31be49 ActivityRecordInputSink com.example.app6/.Main#673 parentId=666 z=-2147483648}
+RequestedLayerState{4ea8cb8 ActivityRecordInputSink com.example.app6/.Main#604 parentId=601 z=-2147483648}
+RequestedLayerState{ActivityRecord{216861807 u0 com.example.app6/.Main t4732}#666 parentId=600 z=1}
+RequestedLayerState{8826217 ActivityRecordInputSink com.mattssoftware.tools/.HomeActivity#8605 parentId=8602 z=-2147483648}
+RequestedLayerState{ActivityRecord{146991050 u0 com.mattssoftware.glyph/.MainActivity t4728}#2994 parentId=183}
+RequestedLayerState{ActivityRecord{237928025 u0 com.example.app7/com.example.app7.Main t4751}#3263 parentId=3246}
+RequestedLayerState{Task=4744#3408 parentId=10 z=6}
+RequestedLayerState{b6c4333 com.google.android.apps.messaging/com.google.android.apps.messaging.ui.ConversationListActivity#5996 parentId=5978}
+RequestedLayerState{Task=4733#701 parentId=10 z=15}
+RequestedLayerState{ActivityRecord{168532594 u0 com.example.app3/.Main t4733}#702 parentId=701}
+RequestedLayerState{5d5c107 ActivityRecordInputSink com.example.app5/com.example.app5.Main#3520 parentId=3511 z=-2147483648}
+RequestedLayerState{ab07fa3 ActivityRecordInputSink com.example.app7/com.example.app7.Main#3266 parentId=3263 z=-2147483648}
+RequestedLayerState{Task=4735#916 parentId=10 z=14}
+RequestedLayerState{ActivityRecord{6802946 u0 com.example.app4/.Main t4735}#917 parentId=916}
+RequestedLayerState{Task=4736#964 parentId=10 z=10}
+RequestedLayerState{ActivityRecord{103269503 u0 com.android.chrome/com.google.android.apps.chrome.Main t4736}#965 parentId=964}
+RequestedLayerState{514467 ActivityRecordInputSink com.example.app8/.Main#1501 parentId=1498 z=-2147483648}
+RequestedLayerState{53d823a ActivityRecordInputSink com.example.app2/com.example.app2.Main#3023 parentId=3018 z=-2147483648}
+RequestedLayerState{Task=4738#1065 parentId=10 z=9}
+RequestedLayerState{2d913d9 ActivityRecordInputSink com.android.chrome/org.chromium.chrome.browser.ChromeTabbedActivity#969 parentId=965 z=-2147483648}
+RequestedLayerState{WindowToken{4cb59f1 type=2031 android.os.Binder@96b5d98}#1595 parentId=21}
+RequestedLayerState{f857ba1 com.example.app8/com.example.app8.Main#1514 parentId=1498}
+RequestedLayerState{91d8735 ActivityRecordInputSink com.mattssoftware.glyph/com.mattssoftware.ghost_md.MainActivity#3008 parentId=2994 z=-2147483648}
+RequestedLayerState{8fa98b com.example.app2/com.example.app2.Main#4672 parentId=4671}
+RequestedLayerState{e792cda com.sec.android.app.myfiles/com.sec.android.app.myfiles.ui.MainActivity#4285 parentId=4274}
+RequestedLayerState{Task=4737#1013 parentId=10 z=4}
+RequestedLayerState{ActivityRecord{171420871 u0 com.example.app9/com.example.app9.Main t4737}#1014 parentId=1013}
+RequestedLayerState{[Gesture Monitor] secinputdev#9101 parentId=35 z=1}
+RequestedLayerState{ActivityRecord{260381373 u0 com.example.app8/.Main t4739}#1498 parentId=1497}
+RequestedLayerState{4e6e0e1 ActivityRecordInputSink com.example.app9/com.example.app9.Main#1017 parentId=1014 z=-2147483648}
+RequestedLayerState{Task=4790#8169 z=20}
+RequestedLayerState{ActivityRecord{191155548 u0 com.example.app2/com.example.app2.Main t4738}#4671 parentId=1065 z=1}
+RequestedLayerState{f2ee476 ActivityRecordInputSink com.google.android.apps.photos/.home.HomeActivity#6337 parentId=6327 z=-2147483648}
+RequestedLayerState{ActivityRecord{240606095 u0 com.example.app5/com.example.app5.Main t4744}#3475 parentId=3408}
+RequestedLayerState{9e6a76c com.example.app4/com.example.app4.Main#6432 parentId=917}
+RequestedLayerState{b29607f com.android.chrome/com.google.android.apps.chrome.Main#5230 parentId=965}
+RequestedLayerState{Dim Layer for - Task=4735#6223 parentId=916 !handle}
+RequestedLayerState{d0f874b com.sec.android.app.camera/com.sec.android.app.camera.Camera#4730 parentId=4720}
+RequestedLayerState{VRI-com.example.app8/com.example.app8.Main$_19800#9182 parentId=1514}
+RequestedLayerState{Dim Layer for - Task=4735#4824 parentId=916 !handle}
+RequestedLayerState{ActivityRecord{255689268 u0 com.example.app5/com.example.app5.Main t4744}#3511 parentId=3408 z=1}
+RequestedLayerState{ActivityRecord{126934077 u0 com.sec.android.app.camera/.Camera t4757}#4720 parentId=4719}
+RequestedLayerState{be7c9e7 ActivityRecordInputSink com.sec.android.app.camera/.Camera#4724 parentId=4720 z=-2147483648}
+RequestedLayerState{Task=4795#8601 parentId=10 z=19}
+RequestedLayerState{Task=4757#4719 parentId=10 z=12}
+RequestedLayerState{ActivityRecord{184004720 u0 com.mattssoftware.attackfm/.MainActivity t4752}#3950 parentId=3949}
+RequestedLayerState{59383a com.example.app5/com.example.app5.Main#3516 parentId=3511}
+RequestedLayerState{3147cd1 com.example.app5/com.example.app5.Main#3476 parentId=3475}
+RequestedLayerState{ec912af com.mattssoftware.tools/com.mattssoftware.tools.HomeActivity#9027 parentId=8602}
+RequestedLayerState{31b67f5 com.example.app2/com.example.app2.Main#4581 parentId=3018}
+RequestedLayerState{Task=4752#3949 parentId=10 z=7}
+RequestedLayerState{ActivityRecord{220339654 u0 com.sec.android.app.myfiles/.ui.MainActivity t4754}#4274 parentId=4273}
+RequestedLayerState{565262e ActivityRecordInputSink com.sec.android.gallery3d/com.samsung.android.gallery.app.activity.external.ImageQuickViewActivity#6165 parentId=6158 z=-2147483648}
+RequestedLayerState{Task=4754#4273 parentId=10 z=8}
+RequestedLayerState{WindowToken{5c75c5 type=2634 android.os.BinderProxy@26af43c}#8989 parentId=25}
+RequestedLayerState{Task=4794#8546 parentId=10 z=18}
+RequestedLayerState{SplitDecorManagerLeash#8542 parentId=8541}
+RequestedLayerState{c6d4e3d com.mattssoftware.tools/com.mattssoftware.frames.MainActivity#9037 parentId=9036}
+RequestedLayerState{Surface(name=2d2a29a TaskbarWindow#178)/@0x4ef5231 - animation-leash of insets_animation#9189 parentId=177}
+RequestedLayerState{ActivityRecord{148056915 u0 com.android.settings/.Settings$ConnectionsSettingsActivity t4794}#8748 parentId=8747}
+RequestedLayerState{Surface(name=d34691b StatusBar#126)/@0x952bf30 - animation-leash of insets_animation#9185 parentId=125}
+RequestedLayerState{ActivityRecord{129088635 u0 com.mattssoftware.tools/com.mattssoftware.frames.MainActivity t4795}#9036 parentId=8601 z=1}
+RequestedLayerState{Surface(name=cd240a NavigationBar0#120)/@0xbc51836 - animation-leash of insets_animation#9188 parentId=119}
+RequestedLayerState{WindowToken{7dd4822 type=2032 android.os.Binder@48e51ed}#8695 parentId=25 z=3}
+RequestedLayerState{ActivityRecord{121083866 u0 com.example.app10/com.example.app10.Main t4792}#8486 parentId=8447 z=1}
+RequestedLayerState{Task=4792#8447 parentId=10 z=16}
+RequestedLayerState{VRI-InputMethod$_8278#9187 parentId=159}
+RequestedLayerState{24abc31 com.android.settings/com.android.settings.Settings#8749 parentId=8742}
+RequestedLayerState{a769404 com.android.settings/com.android.settings.Settings$ConnectionsSettingsActivity#8765 parentId=8748}
+RequestedLayerState{19349d0 com.example.app10/com.example.app10.Main#8485 parentId=8480}
+RequestedLayerState{VRI-Matt's Software Dock$_23865#9011 parentId=9010}
+RequestedLayerState{[Gesture Monitor] clo#9087 parentId=35 z=1}
+RequestedLayerState{WindowToken{4872070 type=2032 android.os.Binder@17e42b3}#8696 parentId=46}
+RequestedLayerState{ActivityRecord{15083501 u0 com.mattssoftware.tools/.HomeActivity t4795}#8602 parentId=8601}
+RequestedLayerState{SplitDecorManager#8540 parentId=8539}
+RequestedLayerState{Transition Root: Task=4727#9174 z=22}
+RequestedLayerState{b9504cc ActivityRecordInputSink com.android.settings/.homepage.SettingsHomepageActivity#8758 parentId=8742 z=-2147483648}
+RequestedLayerState{987ef42 ActivityRecordInputSink com.android.settings/.Settings$ConnectionsSettingsActivity#8759 parentId=8748 z=-2147483648}
+RequestedLayerState{ActivityRecord{30120786 u0 com.example.app10/com.example.app10.Main t4792}#8480 parentId=8447}
+RequestedLayerState{1c6fbb4 ActivityRecordInputSink com.example.app10/com.example.app10.Main#8484 parentId=8480 z=-2147483648}
+RequestedLayerState{SplitDecorManagerLeash#8539 parentId=8538}
+RequestedLayerState{c71f475 ActivityRecordInputSink com.mattssoftware.tools/com.mattssoftware.frames.MainActivity#9048 parentId=9036 z=-2147483648}
+RequestedLayerState{SplitDecorManager#8541 parentId=77}
+RequestedLayerState{76f6532 Matt's Software Dock#9010 parentId=8695}
+RequestedLayerState{TaskFragment{846adb6 mode=fullscreen}#8746 parentId=8546}
+RequestedLayerState{SplitDecorManager#8538 parentId=76}
+RequestedLayerState{a3123bf KeyguardBiometricToastView#9086 parentId=9085}
+RequestedLayerState{WindowToken{4b215de type=2228 android.os.BinderProxy@23b1119}#9085 parentId=25 z=1}
+RequestedLayerState{Surface(name=Task=4727#181)/@0xc31a528_transition-leash#9175 z=12}
+RequestedLayerState{Surface(name=e442bc7 InputMethod#159)/@0x55ffd60 - animation-leash of insets_animation#9186 parentId=158}
+RequestedLayerState{Surface(name=Task=4728#183)/@0x35be1b3_transition-leash#9091 z=2}

@@ -27,6 +27,8 @@ import kotlin.math.roundToInt
  *
  * With Select off, the outlines take no touch at all and the app works as if X-ray were not there; with Select on, a
  * tap picks the innermost box there, and the window stops short of the navigation bar so home and back still work.
+ * With Layers on, the compositor's surfaces for the app (Layers.kt) are outlined instead, coloured by their order, and
+ * a tap picks the topmost of them.
  */
 class Overlay(private val service: XrayAccess) {
     private val windows = service.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -42,10 +44,14 @@ class Overlay(private val service: XrayAccess) {
     private var words: TextView? = null
     private var selectButton: TextView? = null
     private var onlyButton: TextView? = null
+    private var layersButton: TextView? = null
+    private var peelButtons: List<TextView> = emptyList()
 
     private var capture: Capture? = null
     private var peel = XrayTree.Peel()
     private var select = false
+    /** The layer picked with Layers on, by its id. */
+    private var pickedLayer: Int? = null
     /** Where the bar's top left corner is on the screen. */
     private var barX = 0
     private var barY = 0
@@ -148,26 +154,62 @@ class Overlay(private val service: XrayAccess) {
     private fun deepest() = capture?.reading?.boxes?.maxOfOrNull { it.depth } ?: 0
 
     private fun refresh() {
+        if (service.layersOn) { refreshLayers(); return }
         val c = capture
         val deepest = deepest()
         outlines?.let { v ->
-            v.boxes = c?.reading?.boxes?.filter { it.visible && peel.shows(it) } ?: emptyList()
-            v.picked = c?.picked?.let { c.reading.boxes.getOrNull(it) }
+            v.marks = c?.reading?.boxes?.filter { it.visible && peel.shows(it) }?.map { it.area to it.depth } ?: emptyList()
+            v.picked = c?.picked?.let { c.reading.boxes.getOrNull(it) }?.let { it.area to it.depth }
             v.invalidate()
         }
         words?.text = if (c == null) "Reading the app in front..." else peel.words(deepest)
         style(selectButton, select)
         style(onlyButton, peel.only)
+        style(layersButton, false)
+        peelButtons.forEach { it.isEnabled = true; it.alpha = 1f }
         val box = c?.picked?.let { c.reading.boxes.getOrNull(it) }
         card?.let { v ->
             if (box == null) v.visibility = View.GONE
-            else { v.text = XrayTree.card(box, c.kinds).joinToString("\n"); v.visibility = View.VISIBLE }
+            else { v.text = XrayTree.card(box, c.kinds, c.surface).joinToString("\n"); v.visibility = View.VISIBLE }
+        }
+        place()
+    }
+
+    /** Layers on: the app's surfaces with a place, coloured by their order; the card says the one picked, or why there are none. */
+    private fun refreshLayers() {
+        val read = capture?.layers
+        val layers = read?.layers.orEmpty()
+        val placed = layers.filter { it.place != null }
+        val picked = layers.firstOrNull { it.id == pickedLayer }
+        outlines?.let { v ->
+            v.marks = placed.map { it.place!! to it.order }
+            v.picked = picked?.place?.let { it to picked.order }
+            v.invalidate()
+        }
+        words?.text = when {
+            read == null -> "Reading the compositor..."
+            read.why != null -> "Layers not available"
+            else -> "Layers: ${layers.size} of this app, ${placed.size} with a place"
+        }
+        style(selectButton, select)
+        style(onlyButton, false)
+        style(layersButton, true)
+        // Peel steps through the tree's depths, which are not drawn while Layers is on.
+        peelButtons.forEach { it.isEnabled = false; it.alpha = 0.4f }
+        card?.let { v ->
+            val lines = when {
+                read?.why != null -> listOf(read.why, Layers.command(service))
+                picked != null -> LayerParse.card(picked, layers.size)
+                else -> null
+            }
+            if (lines == null) v.visibility = View.GONE else { v.text = lines.joinToString("\n"); v.visibility = View.VISIBLE }
         }
         place()
     }
 
     private fun picked(x: Int, y: Int) {
         val c = capture ?: return
+        if (service.layersOn) { pickedLayer = c.layers?.layers?.let { LayerParse.pick(it, x, y) }?.id; refresh(); return }
         val box = XrayTree.pick(c.reading.boxes.filter { peel.shows(it) }, x, y)
         c.picked = box?.i
         refresh()
@@ -251,18 +293,19 @@ class Overlay(private val service: XrayAccess) {
         first.addView(grip, LinearLayout.LayoutParams(dp(20f), dp(40f)))
         selectButton = button("Select") { select = !select; touchable(); refresh() }
         first.addView(selectButton, cell())
-        // The compositor's surfaces come with the next part of X-ray; until then the button is there and says no.
-        first.addView(button("Layers") {}.apply { isEnabled = false; alpha = 0.4f }, cell())
+        layersButton = button("Layers") { service.layers(!service.layersOn); pickedLayer = null; refresh() }
+        first.addView(layersButton, cell())
         first.addView(button("Open") { service.open() }, cell())
         first.addView(button("Close") { service.stop(false) }, cell())
         b.addView(first)
 
         val second = row().apply { setPadding(0, dp(6f), 0, 0) }
         second.addView(text("Peel", Ink.QUIET).apply { gravity = Gravity.CENTER_VERTICAL; setPadding(dp(4f), 0, 0, 0) }, LinearLayout.LayoutParams(dp(20f) + dp(40f), dp(40f)))
-        second.addView(button("Fewer") { peel = peel.fewer(deepest()); refresh() }, cell())
-        second.addView(button("More") { peel = peel.more(deepest()); refresh() }, cell())
+        val fewer = button("Fewer") { peel = peel.fewer(deepest()); refresh() }
+        val more = button("More") { peel = peel.more(deepest()); refresh() }
         onlyButton = button("Only") { peel = peel.flip(deepest()); refresh() }
-        second.addView(onlyButton, cell())
+        peelButtons = listOf(fewer, more, onlyButton!!)
+        peelButtons.forEach { second.addView(it, cell()) }
         b.addView(second)
 
         words = text("Reading the app in front...", Ink.QUIET).apply { setPadding(dp(4f), dp(10f), dp(4f), dp(2f)) }
@@ -310,10 +353,13 @@ class Overlay(private val service: XrayAccess) {
         }
     }
 
-    /** The outlines: a dark halo under a coloured line round each box, the colour by depth, the picked box washed. */
+    /**
+     * The outlines: a dark halo under a coloured line round each place, the colour by its depth (or a layer's order),
+     * the picked one washed.
+     */
     private class Outlines(context: Context) : View(context) {
-        var boxes: List<XrayTree.Box> = emptyList()
-        var picked: XrayTree.Box? = null
+        var marks: List<Pair<XrayTree.Area, Int>> = emptyList()
+        var picked: Pair<XrayTree.Area, Int>? = null
         var onTap: ((Int, Int) -> Unit)? = null
         private val density = context.resources.displayMetrics.density
         private val halo = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 3.5f * density; color = 0x8C000000.toInt() }
@@ -326,16 +372,16 @@ class Overlay(private val service: XrayAccess) {
             getLocationOnScreen(here)
             canvas.save()
             canvas.translate(-here[0].toFloat(), -here[1].toFloat())
-            picked?.let { p ->
-                wash.color = (COLOURS[p.depth % COLOURS.size] and 0x00FFFFFF) or 0x40000000
-                canvas.drawRect(p.area.l.toFloat(), p.area.t.toFloat(), p.area.r.toFloat(), p.area.b.toFloat(), wash)
+            picked?.let { (a, depth) ->
+                wash.color = (COLOURS[depth % COLOURS.size] and 0x00FFFFFF) or 0x40000000
+                canvas.drawRect(a.l.toFloat(), a.t.toFloat(), a.r.toFloat(), a.b.toFloat(), wash)
             }
             val inset = line.strokeWidth / 2f
-            for (b in boxes) {
-                val l = b.area.l + inset; val t = b.area.t + inset; val r = b.area.r - inset; val bt = b.area.b - inset
+            for ((a, depth) in marks) {
+                val l = a.l + inset; val t = a.t + inset; val r = a.r - inset; val bt = a.b - inset
                 if (r <= l || bt <= t) continue
                 canvas.drawRect(l, t, r, bt, halo)
-                line.color = COLOURS[b.depth % COLOURS.size]
+                line.color = COLOURS[depth % COLOURS.size]
                 canvas.drawRect(l, t, r, bt, line)
             }
             canvas.restore()

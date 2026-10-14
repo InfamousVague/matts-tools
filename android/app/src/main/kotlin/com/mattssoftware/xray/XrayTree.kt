@@ -223,10 +223,11 @@ object XrayTree {
             .sortedWith(compareByDescending<Box> { it.depth }.thenBy { it.area.width.toLong() * it.area.height }.thenByDescending { it.i })
             .firstOrNull()
 
-    /** What the card says of [box], at most six lines. */
-    fun card(box: Box, kinds: Kinds): List<String> {
+    /** What the card says of [box], at most six lines. [surface]: the compositor showed the app's Flutter surface. */
+    fun card(box: Box, kinds: Kinds, surface: Boolean = false): List<String> {
         val lines = ArrayList<String>()
         lines += when {
+            box.kind == "flutter view" && surface -> "Flutter view: it draws to the Flutter surface"
             box.kind == "flutter view" -> "Flutter view: it draws to a surface of its own"
             box.inspector == "flutter" -> "Flutter, semantics node"
             box.inspector == "react-native" && box.testId != null -> "React Native, testID ${box.testId}"
