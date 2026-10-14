@@ -238,7 +238,7 @@ class XrayAccess : AccessibilityService() {
 
     private fun show() {
         stop(true)
-        runCatching { startActivity(com.mattssoftware.tools.Shell.intent(this, "xray").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+        runCatching { startActivity(com.mattssoftware.tools.Shell.intent(this, "xray/tree").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
             .onFailure { Log.i(TAG, "open: ${it.javaClass.simpleName}") }
     }
 

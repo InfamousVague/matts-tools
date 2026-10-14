@@ -3,6 +3,7 @@ package com.mattssoftware.xray
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
 import io.flutter.plugin.common.MethodCall
@@ -36,6 +37,12 @@ object Door {
                 Toast.makeText(activity, XrayTile.ASK, Toast.LENGTH_LONG).show()
                 runCatching { activity.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
                     .onFailure { activity.startActivity(Intent(Settings.ACTION_SETTINGS)) }
+                result.success(null)
+            }
+            "private" -> {
+                // The tree and exploded pages show another app's boxes: no picture of them for Recents (API 33 and later;
+                // before that only FLAG_SECURE would do, which would blank every screenshot too).
+                if (Build.VERSION.SDK_INT >= 33) activity.setRecentsScreenshotEnabled(call.argument<Boolean>("on") != true)
                 result.success(null)
             }
             "forget" -> { XrayAccess.forget(); result.success(null) }

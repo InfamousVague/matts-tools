@@ -78,6 +78,7 @@ class HomeActivity : com.mattssoftware.frames.MainActivity() {
             else @Suppress("DEPRECATION") intent.getParcelableExtra(Intent.EXTRA_COMPONENT_NAME)
         return when (tile?.className) {
             FramesTile::class.java.name -> "settings/frames"
+            com.mattssoftware.xray.XrayTile::class.java.name -> "settings/xray"
             AwakeTile::class.java.name, BrightTile::class.java.name -> "settings/amphetamine"
             else -> "settings"
         }
