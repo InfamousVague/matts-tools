@@ -379,6 +379,18 @@ class XrayTreeTest {
 
     // ---- whose switch is on ----
 
+    @Test fun theLineShownAsAccessibilityOpensFitsInTheTwoLinesOfAToast() {
+        // Android 12 and later show a toast's text in two lines at most, and cut the rest; on the emulator a line held
+        // "Switch on Matt's Tools: X-ray under", 35 characters, and no more. Wrapped at 34, it must need two at most.
+        val lines = ArrayList<String>()
+        for (word in XrayTile.ASK.split(' ')) {
+            if (lines.isNotEmpty() && lines.last().length + 1 + word.length <= 34) lines[lines.size - 1] = lines.last() + " " + word else lines += word
+        }
+        assertTrue(lines.toString(), lines.size <= 2)
+        assertTrue(XrayTile.ASK.contains("Matt's Tools: X-ray"))
+        assertTrue(XrayTile.ASK.contains("Installed") && XrayTile.ASK.contains("Downloaded"))
+    }
+
     @Test fun aServiceIsOnOnlyByItsWholeName() {
         val pkg = "com.mattssoftware.tools"
         val xray = "com.mattssoftware.xray.XrayAccess"

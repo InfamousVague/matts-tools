@@ -62,8 +62,12 @@ class XrayTile : TileService() {
     }
 
     companion object {
-        /** The line shown as the setting opens, the same from the tile and from X-ray's page (xray/Door.kt `ask`). */
-        const val ASK = "Switch on Matt's Tools: X-ray under Installed apps (Downloaded apps on some phones), then come back"
+        /**
+         * The line shown as the setting opens, the same from the tile and from X-ray's page (xray/Door.kt `ask`). Android
+         * 12 and later cut a toast's text at two lines, about 34 characters each on a phone held upright, so it is kept
+         * short enough to be read to its end. The list is "Installed apps" on some phones and "Downloaded apps" on others.
+         */
+        const val ASK = "Switch on Matt's Tools: X-ray in Installed or Downloaded apps"
     }
 }
 
