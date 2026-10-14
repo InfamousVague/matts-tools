@@ -143,7 +143,7 @@ class SetupActivity : Page() {
             Step("X-ray", "Only for X-ray. To show what an app's screen is made of, X-ray reads it through an accessibility service of its own, separate from the dock's, and only while you have started it from its tile. It never reads password fields and writes nothing down. Under Installed apps (Downloaded apps on some phones), switch on Matt's Tools: X-ray.", "Open Accessibility", true,
                 { Granted.xray(it) }, { a -> a.settings(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
                 "If the switch is greyed out, the phone is holding back an app it did not install from a store: open Settings, Apps, Matt's Tools, the three dots at the top, Allow restricted settings, then come back."),
-            Step("Frame timings, from a computer", "Only for Frames. Android lets an app read another app's frame timings after a computer says so, once. With the phone plugged in or on wireless debugging:", "I have run it", true,
+            Step("Frame timings, from a computer", "For Frames, and for X-ray's compositor layers. Android lets an app read another app's frame timings after a computer says so, once. With the phone plugged in or on wireless debugging:", "I have run it", true,
                 { Granted.dump(it) }, { it.draw() },
                 "adb shell pm grant com.mattssoftware.tools android.permission.DUMP"),
         )
