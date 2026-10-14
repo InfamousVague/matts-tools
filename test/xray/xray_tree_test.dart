@@ -116,6 +116,43 @@ void main() {
     await endApp(tester);
   });
 
+  testWidgets('a new capture opened while the page is still up is shown in place of the old one', (tester) async {
+    await arrive(tester, framesCapture(picked: 17));
+    expect(find.text('18 boxes'), findsOneWidget);
+    // Home pressed with the page left up, X-ray started over Settings, Open tapped: the place is the same, so the
+    // shell does not build the page again, and the phone now holds Settings' capture.
+    final settings = {
+      'package': 'com.android.settings', 'label': 'Settings', 'at': 5000, 'width': 1248, 'height': 1972, 'rotation': 0, 'inspectors': ['Native'], 'picked': 1, 'cut': false,
+      'boxes': [
+        box(0, null, 0, 'view', 'native', 'android.widget.FrameLayout'),
+        box(1, 0, 1, 'view', 'native', 'android.widget.TextView', id: 'android:id/title', label: 'Network & internet', at: [210, 670, 646, 741]),
+      ],
+    };
+    fake.xrayCapture = settings;
+    fake.xrayState['capture'] = {'package': 'com.android.settings', 'label': 'Settings', 'count': 2, 'inspectors': ['Native'], 'at': 5000, 'picked': 1};
+    await tester.pump(const Duration(seconds: 1));
+    await settle(tester);
+    expect(find.text('2 boxes'), findsOneWidget);
+    expect(find.text('18 boxes'), findsNothing);
+    expect(find.text('Settings'), findsOneWidget);
+    // Its own pick is open, not the old one's.
+    expect(find.text('210, 670, 436 by 71'), findsOneWidget);
+    expect(find.text('48, 1319, 1152 by 129'), findsNothing);
+    await endApp(tester);
+  });
+
+  testWidgets('while X-ray is drawing the page keeps what it shows, though each reading is a new capture', (tester) async {
+    await arrive(tester, framesCapture());
+    fake.xrayState['running'] = true;
+    fake.xrayState['capture'] = {'package': 'com.mattssoftware.tools', 'label': 'Matt\'s Tools', 'count': 18, 'inspectors': ['Native', 'Flutter'], 'at': 7000};
+    final asked = fake.of('xray').where((c) => (c.arguments as Map)['do'] == 'capture').length;
+    await tester.pump(const Duration(seconds: 2));
+    await settle(tester);
+    expect(fake.of('xray').where((c) => (c.arguments as Map)['do'] == 'capture').length, asked);
+    expect(find.text('18 boxes'), findsOneWidget);
+    await endApp(tester);
+  });
+
   testWidgets('with nothing captured the page says how to capture, and Forget it drops the capture', (tester) async {
     await arrive(tester, null);
     expect(find.textContaining('Nothing captured'), findsOneWidget);

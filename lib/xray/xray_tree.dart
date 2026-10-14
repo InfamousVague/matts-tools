@@ -132,8 +132,16 @@ class _XrayTreePageState extends State<XrayTreePage> {
 
   Future<void> _check() async {
     final state = await Xray.state();
-    if (!mounted || state == null || state.capture != null || _capture == null) return;
-    setState(() => _capture = null);
+    if (!mounted || state == null || !_loaded) return;
+    final now = state.capture, shown = _capture;
+    if (now == null) {
+      if (shown != null) setState(() => _capture = null);
+      return;
+    }
+    // Another capture than the one shown: X-ray was started again, over this app or another, and Open tapped, which
+    // brings this page back as it was. It is shown in place of the old one; not while X-ray is drawing, when the
+    // capture changes with every reading.
+    if (!state.running && (shown == null || now.at != shown.at || now.package != shown.package)) await _load();
   }
 
   void _openTo(Capture c, int? picked) {
