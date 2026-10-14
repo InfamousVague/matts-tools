@@ -134,9 +134,10 @@ class Overlay(private val service: XrayAccess) {
         runCatching { windows.addView(root, at) }.onFailure { hide(); return }
         controls = root; controlsAt = at
 
-        // The card takes no touch: a tap on it goes to what is under it, the app or, with Select on, the outlines.
+        // The card takes no touch: a tap on it goes to what is under it, the app or, with Select on, the outlines. It
+        // is secure, since it can show words of a screen its app keeps out of screenshots and recordings.
         val k = makeCard()
-        val kAt = params("X-ray card", WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, width(s), ViewGroup.LayoutParams.WRAP_CONTENT)
+        val kAt = params("X-ray card", WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or WindowManager.LayoutParams.FLAG_SECURE, width(s), ViewGroup.LayoutParams.WRAP_CONTENT)
         kAt.x = barX; kAt.y = barY
         k.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> place() }
         runCatching { windows.addView(k, kAt) }.onFailure { hide(); return }

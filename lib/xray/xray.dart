@@ -252,8 +252,8 @@ class Xray {
     } catch (_) {}
   }
 
-  /// Asks Android not to keep a picture of this page for Recents while [on] (API 33 and later), since the tree and the
-  /// exploded view show another app's boxes. Never throws.
+  /// Makes the page's window secure while [on], so no screenshot, recording or Recents picture holds it, since the tree
+  /// and the exploded view show another app's boxes. Never throws.
   static Future<void> private(bool on) async {
     try {
       await _ask('private', {'on': on});
@@ -311,5 +311,5 @@ const List<({String kind, String reads, String cannot})> canRead = [
 ];
 
 /// The two things true of every kind, for the page and for Settings.
-const String hiddenViewsNote = 'Some apps hide parts of their screen from X-ray. On Android 14 and later, views an app marks as sensitive, such as banking and payment screens, are left out of what X-ray is given.';
+const String hiddenViewsNote = 'A screen an app keeps out of screenshots, such as a bank\'s, is still read by X-ray, so X-ray\'s card and its tree page are kept out of screenshots too. Only views an app marks as sensitive for accessibility, on Android 14 and later, are left out of what X-ray is given.';
 const String flutterNavigationNote = 'Reading a Flutter app switches on Flutter\'s accessible navigation in that app. It stays on until X-ray\'s switch in Accessibility is turned off.';

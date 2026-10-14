@@ -78,8 +78,8 @@ List<String> cardLines(CaptureBox b, {bool surface = false}) {
 }
 
 /// The tree last captured, to walk through, and its exploded view: the page Open on X-ray's bar lands on, with the
-/// box that was picked there open. It shows another app's boxes, so it asks Android not to keep a picture of it for
-/// Recents while it is up ([Xray.private]); and, like the page before it, it lets go of the capture as soon as the
+/// box that was picked there open. It shows another app's boxes, so its window is kept out of screenshots, recordings
+/// and Recents while it is up ([Xray.private]); and, like the page before it, it lets go of the capture as soon as the
 /// phone has.
 class XrayTreePage extends StatefulWidget {
   const XrayTreePage({super.key});

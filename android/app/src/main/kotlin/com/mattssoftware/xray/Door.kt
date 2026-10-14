@@ -3,8 +3,8 @@ package com.mattssoftware.xray
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import android.provider.Settings
+import android.view.WindowManager
 import android.widget.Toast
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -40,9 +40,12 @@ object Door {
                 result.success(null)
             }
             "private" -> {
-                // The tree and exploded pages show another app's boxes: no picture of them for Recents (API 33 and later;
-                // before that only FLAG_SECURE would do, which would blank every screenshot too).
-                if (Build.VERSION.SDK_INT >= 33) activity.setRecentsScreenshotEnabled(call.argument<Boolean>("on") != true)
+                // The tree and exploded pages show another app's boxes, and X-ray reads even a screen its app keeps out of
+                // screenshots: while they are up the window is secure, so no screenshot, recording, cast or Recents
+                // picture holds them. Recents pictures are written to disk, and only this keeps them out on Android 10
+                // to 12L (the brief: "Nothing of another app's screen is written to disk").
+                if (call.argument<Boolean>("on") == true) activity.window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                else activity.window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
                 result.success(null)
             }
             "forget" -> { XrayAccess.forget(); result.success(null) }
