@@ -193,6 +193,35 @@ void main() {
     await endApp(tester);
   });
 
+  testWidgets('in a page that scrolls, an upright drag on the exploded view tips the planes and does not scroll the page', (tester) async {
+    fake.xrayCapture = framesCapture();
+    fake.xrayState['capture'] = {'package': 'com.mattssoftware.tools', 'label': 'Matt\'s Tools', 'count': 18, 'inspectors': ['Native', 'Flutter']};
+    // A phone's height: the page with the view, its note and Forget it is taller, so it scrolls.
+    await pumpApp(tester, size: const Size(390, 844), home: const AppShell(first: xrayTreePlace));
+    await settle(tester);
+    await tester.tap(find.text('Exploded'));
+    await settle(tester);
+    final view = find.byKey(const ValueKey('xray.exploded'));
+    await tester.ensureVisible(view);
+    await settle(tester);
+    final list = tester.state<ScrollableState>(find.ancestor(of: view, matching: find.byType(Scrollable)).first).position;
+    expect(list.maxScrollExtent, greaterThan(0));
+    final scrolled = list.pixels;
+    ExplodedPainter painter() => tester.widget<CustomPaint>(find.descendant(of: view, matching: find.byType(CustomPaint))).painter! as ExplodedPainter;
+    final pitch = painter().pitch, yaw = painter().yaw;
+    await tester.drag(view, const Offset(0, -60));
+    await settle(tester);
+    expect(painter().pitch, greaterThan(pitch));
+    expect(painter().yaw, yaw);
+    expect(list.pixels, scrolled);
+    // Down tips it back the other way.
+    await tester.drag(view, const Offset(0, 120));
+    await settle(tester);
+    expect(painter().pitch, lessThan(pitch));
+    expect(list.pixels, scrolled);
+    await endApp(tester);
+  });
+
   test('rows follow the tree in order, hide what is folded, and say which have something under them', () {
     final boxes = [for (final b in (framesCapture()['boxes'] as List)) CaptureBox(b as Map)];
     final all = treeRows(boxes, {for (final b in boxes) b.i});

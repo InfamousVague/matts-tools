@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
 import '../ui.dart';
@@ -160,22 +161,39 @@ class _ExplodedViewState extends State<ExplodedView> {
         return GestureDetector(
           key: const ValueKey('xray.exploded'),
           behavior: HitTestBehavior.opaque,
-          onPanUpdate: (d) => setState(() {
-            _yaw = (_yaw + d.delta.dx * 0.01).clamp(-maxTurn, maxTurn);
-            _pitch = (_pitch - d.delta.dy * 0.01).clamp(-maxTurn, maxTurn);
-          }),
           onDoubleTap: () => setState(() {
             _yaw = ExplodedView.restYaw;
             _pitch = ExplodedView.restPitch;
           }),
           onTapUp: (d) => widget.onPick(laid.at(d.localPosition)),
-          child: CustomPaint(
-            size: size,
-            painter: ExplodedPainter(exploded: laid, yaw: _yaw, pitch: _pitch, picked: widget.picked, faint: ink(context, 'border-subtle'), wash: depthWash(ink(context, 'text'))),
+          child: RawGestureDetector(
+            behavior: HitTestBehavior.opaque,
+            gestures: {
+              _Turn: GestureRecognizerFactoryWithHandlers<_Turn>(
+                _Turn.new,
+                (turn) => turn.onUpdate = (d) => setState(() {
+                  _yaw = (_yaw + d.delta.dx * 0.01).clamp(-maxTurn, maxTurn);
+                  _pitch = (_pitch - d.delta.dy * 0.01).clamp(-maxTurn, maxTurn);
+                }),
+              ),
+            },
+            child: CustomPaint(
+              size: size,
+              painter: ExplodedPainter(exploded: laid, yaw: _yaw, pitch: _pitch, picked: widget.picked, faint: ink(context, 'border-subtle'), wash: depthWash(ink(context, 'text'))),
+            ),
           ),
         );
       },
     );
+  }
+}
+
+/// A drag that turns the planes. The view sits in a page that scrolls up and down, whose drag takes a finger once it
+/// has moved 18 pixels up or down; an ordinary pan would need 36 in any way, so every drag with an upright part
+/// scrolled the page instead. This one takes the finger after 6, before the page can, and a tap still moves less.
+class _Turn extends PanGestureRecognizer {
+  _Turn() {
+    gestureSettings = const DeviceGestureSettings(touchSlop: 3);
   }
 }
 
