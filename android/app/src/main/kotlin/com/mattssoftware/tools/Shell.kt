@@ -113,6 +113,7 @@ class HomeActivity : com.mattssoftware.frames.MainActivity() {
             "openSetting" -> { openSetting(call.arguments as String); result.success(null) }
             "apps" -> Thread { val all = apps(); runOnUiThread { result.success(all) } }.start()
             "launch" -> { result.success(page); page = null }
+            "xray" -> com.mattssoftware.xray.Door.answer(this, call, result)
             else -> super.answer(call, result)
         }
     }

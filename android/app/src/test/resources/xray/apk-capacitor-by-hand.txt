@@ -1,0 +1,6 @@
+# Written by hand, not captured from a phone: a Capacitor app (capacitor CapConfig.java: capacitor.config.json; Bridge.java: assets/public)
+# One entry a line, "size name". Each name is from the source named beside it in .new-tool-pr/notes/facts.md section 7.
+1500000 classes.dex
+300 assets/capacitor.config.json
+1100 assets/public/index.html
+60000 assets/public/assets/index-abc.js

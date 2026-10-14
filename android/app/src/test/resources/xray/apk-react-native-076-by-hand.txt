@@ -1,0 +1,8 @@
+# Written by hand, not captured from a phone: a React Native 0.76 app on Hermes (libreactnative.so from react/soloader/OpenSourceMergedSoMapping.kt)
+# One entry a line, "size name". Each name is from the source named beside it in .new-tool-pr/notes/facts.md section 7.
+5000000 classes.dex
+1500000 assets/index.android.bundle
+2100000 lib/arm64-v8a/libreactnative.so
+900000 lib/arm64-v8a/libhermes.so
+300000 lib/arm64-v8a/libhermestooling.so
+20000 res/drawable/icon.png

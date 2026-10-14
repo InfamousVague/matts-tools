@@ -1,0 +1,8 @@
+# Written by hand, not captured from a phone: an Expo app on React Native 0.82 (libhermesvm.so from hermes/reactexecutor/HermesExecutor.kt; assets/app.config from expo-constants)
+# One entry a line, "size name". Each name is from the source named beside it in .new-tool-pr/notes/facts.md section 7.
+5000000 classes.dex
+900000 assets/index.android.bundle
+120 assets/app.config
+2400000 lib/arm64-v8a/libreactnative.so
+1100000 lib/arm64-v8a/libhermesvm.so
+80000 lib/arm64-v8a/libexpo-modules-core.so
