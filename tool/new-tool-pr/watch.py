@@ -72,6 +72,7 @@ def main():
 
     last = None
     seen = {}
+    quiet = set()
     with open(os.path.join(log_dir, "log.jsonl"), "w") as log:
         for line in child.stdout:
             log.write(line)
@@ -110,6 +111,10 @@ def main():
                 if doing and doing not in seen.setdefault(event.get("task_id"), set()):
                     seen[event.get("task_id")].add(doing)
                     print("%s · %s" % (stamp, short(doing, 200)), flush=True)
+            elif kind == "system" and sub == "task_started" and event.get("task_type") not in (None, "local_workflow"):
+                quiet.add(event.get("task_id"))  # a command some agent left running: the log has it
+            elif kind == "system" and sub == "task_notification" and event.get("task_id") in quiet:
+                pass
             elif kind == "system" and sub in ("task_started", "task_notification"):
                 print("%s · %s: %s" % (stamp, "started" if sub == "task_started" else event.get("status", "ended"),
                                        short(event.get("description") or event.get("summary") or event.get("task_id"), 200)), flush=True)
