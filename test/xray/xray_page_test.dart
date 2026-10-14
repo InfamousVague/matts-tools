@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frames/shell/app_shell.dart';
+import 'package:frames/shell/visited.dart';
 import 'package:frames/xray/xray.dart';
 import 'package:frames/xray/xray_page.dart';
 
@@ -133,6 +134,35 @@ void main() {
     await settle(tester);
     expect(fake.of('xray').where((c) => (c.arguments as Map)['do'] == 'ask').length, 2);
     await shot(tester, 'xray-switch-off');
+    await endApp(tester);
+  });
+
+  testWidgets('with the switch off, coming back from an app\'s anatomy does not ask again; arriving again does', (tester) async {
+    fake.xrayState['on'] = false;
+    int asks() => fake.of('xray').where((c) => (c.arguments as Map)['do'] == 'ask').length;
+    await pumpApp(tester, size: const Size(390, 3600), home: const AppShell());
+    await settle(tester);
+    await tester.tap(find.text('X-ray'));
+    await settle(tester);
+    expect(asks(), 1);
+    final shell = tester.state<AppShellState>(find.byType(AppShell));
+    for (var i = 0; i < 2; i++) {
+      await tester.tap(find.byKey(const ValueKey('xray.app.com.example.maps')));
+      await settle(tester);
+      shell.back();
+      await settle(tester);
+      await tester.pump(const Duration(seconds: 1));
+      expect(shell.place, xrayPlace);
+      expect(asks(), 1);
+    }
+    expect(find.byKey(const ValueKey('xray.switch')), findsOneWidget);
+    // Back to the page of tools and in again: an arrival, so it asks.
+    shell.back();
+    await settle(tester);
+    expect(shell.place, homePlace);
+    await tester.tap(find.text('X-ray'));
+    await settle(tester);
+    expect(asks(), 2);
     await endApp(tester);
   });
 

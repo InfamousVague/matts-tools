@@ -70,6 +70,10 @@ class AppShellState extends State<AppShell> with WidgetsBindingObserver {
   bool get canBack => _walk.canBack;
   bool get canOn => _walk.canOn;
 
+  /// The place ahead on the trail, where a step back has just been taken from it; null where there is none. A page
+  /// tells by it a step back to it from an arrival.
+  Place? get ahead => _walk.trail.at + 1 < _walk.trail.places.length ? _walk.trail.places[_walk.trail.at + 1] : null;
+
   @override
   void initState() {
     super.initState();

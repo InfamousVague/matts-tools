@@ -10,7 +10,8 @@ import 'xray.dart';
 
 /// X-ray's page: X-ray's switch, the last reading of a screen, and the apps on the phone, each opening what it is
 /// made of. Arriving with the switch off, it opens Accessibility at once (the brief: "if there is a setting that
-/// needs turned on the app should prompt immediatly when tapping"), once an arrival; the apps stay usable without it.
+/// needs turned on the app should prompt immediatly when tapping"), once an arrival; the apps stay usable without it,
+/// and coming back to the page from one of its own (an app's anatomy, the tree) is not an arrival.
 class XrayPage extends StatefulWidget {
   const XrayPage({super.key});
 
@@ -30,6 +31,9 @@ class _XrayPageState extends State<XrayPage> {
   @override
   void initState() {
     super.initState();
+    // The shell builds the page anew each time it is shown, a step back included: a step back from a page of X-ray's
+    // own does not ask again.
+    _asked = context.findAncestorStateOfType<AppShellState>()?.ahead?.startsWith('$xrayPlace/') ?? false;
     Xray.apps().then((apps) {
       if (mounted) setState(() => _apps = apps);
     }).catchError((_) {
