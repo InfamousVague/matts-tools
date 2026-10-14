@@ -152,40 +152,40 @@ class _XrayPageState extends State<XrayPage> {
         SizedBox(height: t.space(4)),
         const Txt('Compositor layers', weight: 'semibold'),
         SizedBox(height: t.space(1)),
-        ..._layers(context, c),
+        ...layerLines(context, c.layers, c.layersWhy),
       ]),
     );
   }
 
-  /// The surfaces the system composes for the captured app, top first, each with what it is, its name and its place.
-  List<Widget> _layers(BuildContext context, CaptureSummary c) {
-    final t = context.tokens;
-    final layers = c.layers;
-    if (c.layersWhy != null) {
-      return [
-        Txt(c.layersWhy!, size: 'sm', color: 'text-muted'),
-        SizedBox(height: t.space(2)),
-        const Txt('adb shell pm grant com.mattssoftware.tools android.permission.DUMP', size: 'sm', mono: true),
-      ];
-    }
-    if (layers == null) return const [Txt('Not read. Tap Layers on X-ray\'s bar, or Open, to read them.', size: 'sm', color: 'text-muted')];
-    if (layers.isEmpty) return const [Txt('The compositor listed none for this app.', size: 'sm', color: 'text-muted')];
-    String place(Rect r, int z) => '${r.left.round()}, ${r.top.round()}, ${r.width.round()} by ${r.height.round()}, z $z';
+  String _and(List<String> words) => words.length == 1 ? words.first : '${words.sublist(0, words.length - 1).join(', ')} and ${words.last}';
+}
+
+/// The surfaces the system composes for the captured app, top first, each with what it is, its name and its place; or
+/// why there are none ([why]), or that they were not read.
+List<Widget> layerLines(BuildContext context, List<CaptureLayer>? layers, String? why) {
+  final t = context.tokens;
+  if (why != null) {
     return [
-      for (final l in layers.reversed)
-        Padding(
-          key: ValueKey('xray.layer.${l.id}'),
-          padding: EdgeInsets.only(top: t.space(2)),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Txt(l.words, size: 'sm', weight: 'semibold'),
-            Txt(l.name, size: 'sm', mono: true, color: 'text-muted'),
-            Txt(l.place == null ? 'Place not given' : place(l.place!, l.z), size: 'sm', color: 'text-muted'),
-          ]),
-        ),
+      Txt(why, size: 'sm', color: 'text-muted'),
+      SizedBox(height: t.space(2)),
+      const Txt('adb shell pm grant com.mattssoftware.tools android.permission.DUMP', size: 'sm', mono: true),
     ];
   }
-
-  String _and(List<String> words) => words.length == 1 ? words.first : '${words.sublist(0, words.length - 1).join(', ')} and ${words.last}';
+  if (layers == null) return const [Txt('Not read. Tap Layers on X-ray\'s bar, or Open, to read them.', size: 'sm', color: 'text-muted')];
+  if (layers.isEmpty) return const [Txt('The compositor listed none for this app.', size: 'sm', color: 'text-muted')];
+  String place(Rect r, int z) => '${r.left.round()}, ${r.top.round()}, ${r.width.round()} by ${r.height.round()}, z $z';
+  return [
+    for (final l in layers.reversed)
+      Padding(
+        key: ValueKey('xray.layer.${l.id}'),
+        padding: EdgeInsets.only(top: t.space(2)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Txt(l.words, size: 'sm', weight: 'semibold'),
+          Txt(l.name, size: 'sm', mono: true, color: 'text-muted'),
+          Txt(l.place == null ? 'Place not given' : place(l.place!, l.z), size: 'sm', color: 'text-muted'),
+        ]),
+      ),
+  ];
 }
 
 /// The anatomy of one app: what it is built with and the files that show it, its libraries, assets, code and
