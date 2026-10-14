@@ -19,11 +19,13 @@ import com.mattssoftware.tools.Ink
 import kotlin.math.roundToInt
 
 /**
- * What X-ray draws over the app in front, as two windows of its accessibility service (the kind drawn above the
+ * What X-ray draws over the app in front, as three windows of its accessibility service (the kind drawn above the
  * status bar, and trusted, so touches pass through them to the app): "X-ray outlines", the boxes of the last reading
- * outlined and coloured by depth over the whole screen, and "X-ray controls", a small bar that can be moved, with the
- * card of the picked box. The bar never covers the whole screen (the brief: "a small bar of controls that never covers
- * the whole screen"), stays out of the status bar's strip and clear of the camera, and Close on it always works.
+ * outlined and coloured by depth over the whole screen, "X-ray controls", a small bar that can be moved, and "X-ray
+ * card", what the picked box is, beside the bar. The card takes no touch, so with Select off only the bar itself
+ * stands between a finger and the app. The bar never covers the whole screen (the brief: "a small bar of controls
+ * that never covers the whole screen"), stays out of the status bar's strip and clear of the camera, and Close on it
+ * always works.
  *
  * With Select off, the outlines take no touch at all and the app works as if X-ray were not there; with Select on, a
  * tap picks the innermost box there, and the window stops short of the navigation bar so home and back still work.
@@ -39,8 +41,8 @@ class Overlay(private val service: XrayAccess) {
     private var outlineAt: WindowManager.LayoutParams? = null
     private var controls: LinearLayout? = null
     private var controlsAt: WindowManager.LayoutParams? = null
-    private var bar: LinearLayout? = null
     private var card: TextView? = null
+    private var cardAt: WindowManager.LayoutParams? = null
     private var words: TextView? = null
     private var selectButton: TextView? = null
     private var onlyButton: TextView? = null
@@ -123,13 +125,22 @@ class Overlay(private val service: XrayAccess) {
         root.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> place() }
         runCatching { windows.addView(root, at) }.onFailure { hide(); return }
         controls = root; controlsAt = at
+
+        // The card takes no touch: a tap on it goes to what is under it, the app or, with Select on, the outlines.
+        val k = makeCard()
+        val kAt = params("X-ray card", WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, width(s), ViewGroup.LayoutParams.WRAP_CONTENT)
+        kAt.x = barX; kAt.y = barY
+        k.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> place() }
+        runCatching { windows.addView(k, kAt) }.onFailure { hide(); return }
+        card = k; cardAt = kAt
         refresh()
     }
 
     fun hide() {
         outlines?.let { v -> runCatching { windows.removeViewImmediate(v) } }
         controls?.let { v -> runCatching { windows.removeViewImmediate(v) } }
-        outlines = null; outlineAt = null; controls = null; controlsAt = null; bar = null; card = null; words = null
+        card?.let { v -> runCatching { windows.removeViewImmediate(v) } }
+        outlines = null; outlineAt = null; controls = null; controlsAt = null; card = null; cardAt = null; words = null
         capture = null
     }
 
@@ -137,6 +148,7 @@ class Overlay(private val service: XrayAccess) {
     fun layout() {
         val s = screen()
         controlsAt?.let { it.width = width(s) }
+        cardAt?.let { at -> at.width = width(s); card?.let { v -> runCatching { windows.updateViewLayout(v, at) } } }
         touchable()
         place()
     }
@@ -234,27 +246,38 @@ class Overlay(private val service: XrayAccess) {
 
     /**
      * Puts the controls where the bar was left: the card above the bar, or below it when the bar is in the upper half,
-     * and the whole kept on the screen, out of the status bar's strip and clear of the camera (XrayTree.kt `keep`).
+     * and the two together kept on the screen, out of the status bar's strip and clear of the camera (XrayTree.kt `keep`).
      */
     private fun place() {
         if (dragging) return
         val root = controls ?: return
         val at = controlsAt ?: return
-        val b = bar ?: return
         val k = card ?: return
         val s = screen()
-        val barH = b.height.takeIf { it > 0 } ?: return
+        val barH = root.height.takeIf { it > 0 } ?: return
         val above = barY + barH / 2 > s.tall / 2
-        val want = if (above) 0 else 1
-        if (root.indexOfChild(k) != want) { root.removeView(k); root.addView(k, if (above) 0 else 1, cardParams(above)) ; return }
-        val cardH = if (k.visibility == View.VISIBLE) k.height + dp(8f) else 0
+        val cardH = if (k.visibility == View.VISIBLE && k.height > 0) k.height + dp(8f) else 0
         val w = at.width.takeIf { it > 0 } ?: width(s)
         val top = if (above) barY - cardH else barY
         val (x, y) = XrayTree.keep(XrayTree.Area(barX, top, barX + w, top + barH + cardH), s.wide, s.tall, s.top, s.bottom + dp(8f), s.keepOut, dp(8f))
         barX = x; barY = if (above) y + cardH else y
-        if (at.x != x || at.y != y) {
-            at.x = x; at.y = y
+        if (at.x != barX || at.y != barY) {
+            at.x = barX; at.y = barY
             runCatching { windows.updateViewLayout(root, at) }
+        }
+        stick(above, barH)
+    }
+
+    /** The card beside the bar: above it, or below it, 8 dp away. */
+    private fun stick(above: Boolean, barH: Int) {
+        val at = controlsAt ?: return
+        val k = card ?: return
+        val kAt = cardAt ?: return
+        val x = at.x
+        val y = if (above) at.y - dp(8f) - k.height else at.y + barH + dp(8f)
+        if (kAt.x != x || kAt.y != y) {
+            kAt.x = x; kAt.y = y
+            runCatching { windows.updateViewLayout(k, kAt) }
         }
     }
 
@@ -279,13 +302,9 @@ class Overlay(private val service: XrayAccess) {
 
     private fun row() = LinearLayout(service).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
     private fun cell() = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginStart = dp(4f) }
-    private fun cardParams(above: Boolean) = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-        if (above) bottomMargin = dp(8f) else topMargin = dp(8f)
-    }
     private fun body(radius: Float) = GradientDrawable().apply { cornerRadius = radius; setColor(Ink.CARD); setStroke(1, Ink.LINE) }
 
     private fun makeControls(): LinearLayout {
-        val root = LinearLayout(service).apply { orientation = LinearLayout.VERTICAL }
         val b = LinearLayout(service).apply {
             orientation = LinearLayout.VERTICAL; background = body(dp(18f).toFloat()); setPadding(dp(8f), dp(8f), dp(10f), dp(10f))
         }
@@ -312,31 +331,28 @@ class Overlay(private val service: XrayAccess) {
 
         words = text("Reading the app in front...", Ink.QUIET).apply { setPadding(dp(4f), dp(10f), dp(4f), dp(2f)) }
         b.addView(words)
+        return b
+    }
 
-        card = text("").apply {
-            background = body(dp(16f).toFloat()); setPadding(dp(14f), dp(12f), dp(14f), dp(12f)); setLineSpacing(0f, 1.2f); maxLines = 12
-            visibility = View.GONE
-        }
-        root.addView(card, cardParams(true))
-        root.addView(b)
-        bar = b
-        return root
+    private fun makeCard() = text("").apply {
+        background = body(dp(16f).toFloat()); setPadding(dp(14f), dp(12f), dp(14f), dp(12f)); setLineSpacing(0f, 1.2f); maxLines = 12
+        visibility = View.GONE
     }
 
     /** Dragged by its grip, the bar moves and stays where it is left; let go, it is put back clear of the camera. */
     private fun drag(grip: View) {
-        var downX = 0f; var downY = 0f; var fromX = 0; var fromY = 0
+        var downX = 0f; var downY = 0f; var fromX = 0; var fromY = 0; var tall = 0
         grip.setOnTouchListener { _, e ->
             val at = controlsAt ?: return@setOnTouchListener false
             when (e.actionMasked) {
-                MotionEvent.ACTION_DOWN -> { dragging = true; downX = e.rawX; downY = e.rawY; fromX = at.x; fromY = at.y }
+                MotionEvent.ACTION_DOWN -> { dragging = true; downX = e.rawX; downY = e.rawY; fromX = at.x; fromY = at.y; tall = screen().tall }
                 MotionEvent.ACTION_MOVE -> {
                     at.x = fromX + (e.rawX - downX).roundToInt(); at.y = fromY + (e.rawY - downY).roundToInt()
                     controls?.let { runCatching { windows.updateViewLayout(it, at) } }
+                    controls?.let { stick(at.y + it.height / 2 > tall / 2, it.height) }
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    val cardH = card?.takeIf { it.visibility == View.VISIBLE && controls?.indexOfChild(it) == 0 }?.let { it.height + dp(8f) } ?: 0
-                    barX = at.x; barY = at.y + cardH
+                    barX = at.x; barY = at.y
                     dragging = false
                     place()
                     prefs.barX = barX; prefs.barY = barY
