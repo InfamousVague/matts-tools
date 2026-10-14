@@ -89,9 +89,11 @@ class Granted {
         access = m['access'] as bool,
         write = m['write'] as bool,
         dump = m['dump'] as bool,
-        secure = m['secure'] as bool;
+        secure = m['secure'] as bool,
+        xray = (m['xray'] as bool?) ?? false;
 
-  final bool notifications, overlay, usage, access, write, dump, secure;
+  /// X-ray's own switch in Accessibility, apart from the dock's ([access]).
+  final bool notifications, overlay, usage, access, write, dump, secure, xray;
 
   /// How many of the three every tool leans on are still to give.
   int get missing => [notifications, overlay, usage].where((given) => !given).length;

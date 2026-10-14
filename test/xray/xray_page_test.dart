@@ -80,7 +80,7 @@ void main() {
 
   testWidgets('the list shows the apps the phone gives, and a tap on one draws what it is made of', (tester) async {
     fake.anatomies['com.mattssoftware.tools'] = toolsAnatomy;
-    await pumpApp(tester, size: const Size(390, 2600), home: const AppShell(first: xrayPlace));
+    await pumpApp(tester, size: const Size(390, 3600), home: const AppShell(first: xrayPlace));
     await settle(tester);
     expect(find.text('Maps'), findsOneWidget);
     expect(find.text('Matt\'s Tools'), findsOneWidget);
@@ -97,7 +97,7 @@ void main() {
   });
 
   testWidgets('an app the phone cannot read says so in plain words, with the page still drawn', (tester) async {
-    await pumpApp(tester, home: const AppShell(first: xrayPlace));
+    await pumpApp(tester, size: const Size(390, 3600), home: const AppShell(first: xrayPlace));
     await settle(tester);
     await tester.tap(find.byKey(const ValueKey('xray.app.com.example.maps')));
     await settle(tester);
@@ -108,7 +108,7 @@ void main() {
 
   testWidgets('a phone that answers nothing at all does not throw', (tester) async {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(const MethodChannel('frames'), (call) async => null);
-    await pumpApp(tester, home: const AppShell(first: xrayPlace));
+    await pumpApp(tester, size: const Size(390, 3600), home: const AppShell(first: xrayPlace));
     await settle(tester);
     expect(tester.takeException(), isNull);
     expect(find.text('No apps could be listed.'), findsOneWidget);
@@ -118,7 +118,7 @@ void main() {
 
   testWidgets('with X-ray\'s switch off the page asks at once, once, and keeps its apps and the way to the switch', (tester) async {
     fake.xrayState['on'] = false;
-    await pumpApp(tester, size: const Size(390, 1400), home: const AppShell(first: xrayPlace));
+    await pumpApp(tester, size: const Size(390, 3600), home: const AppShell(first: xrayPlace));
     await settle(tester);
     // Some seconds of the page looking again: still asked only once on this arrival.
     for (var i = 0; i < 4; i++) {
@@ -152,6 +152,23 @@ void main() {
     await settle(tester);
     expect(find.byKey(const ValueKey('xray.capture')), findsNothing);
     expect(find.text('18 boxes'), findsNothing);
+    await endApp(tester);
+  });
+
+  testWidgets('the page says what X-ray can read of each kind, and a capture has a way to walk its tree', (tester) async {
+    fake.xrayState['capture'] = {'package': 'com.example.maps', 'label': 'Maps', 'count': 40};
+    await pumpApp(tester, size: const Size(390, 3600), home: const AppShell(first: xrayPlace));
+    await settle(tester);
+    expect(find.text('What X-ray can read'.toUpperCase()), findsOneWidget);
+    for (final k in canRead) {
+      expect(find.text(k.kind), findsOneWidget, reason: k.kind);
+    }
+    expect(find.textContaining('Widget names'), findsOneWidget);
+    expect(find.text(flutterNavigationNote), findsOneWidget);
+    expect(find.text(hiddenViewsNote), findsOneWidget);
+    await tester.tap(find.text('Walk the tree'));
+    await settle(tester);
+    expect(tester.state<AppShellState>(find.byType(AppShell)).place, xrayTreePlace);
     await endApp(tester);
   });
 

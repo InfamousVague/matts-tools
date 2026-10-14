@@ -252,6 +252,14 @@ class Xray {
     } catch (_) {}
   }
 
+  /// Asks Android not to keep a picture of this page for Recents while [on] (API 33 and later), since the tree and the
+  /// exploded view show another app's boxes. Never throws.
+  static Future<void> private(bool on) async {
+    try {
+      await _ask('private', {'on': on});
+    } catch (_) {}
+  }
+
   /// What [package] is made of. Never throws: a phone that cannot say gives an [Anatomy] with its [Anatomy.error].
   static Future<Anatomy> anatomy(String package) async {
     try {
@@ -271,3 +279,37 @@ String bytesOf(int bytes) {
   if (bytes < 1000 * 1000 * 1000) return '${(bytes / 1000000).toStringAsFixed(1)} MB';
   return '${(bytes / 1000000000).toStringAsFixed(2)} GB';
 }
+
+/// What X-ray can read of each kind of app and what it cannot, in the words the page and Settings both use. A kind
+/// and, under it, what it reads and what it cannot.
+const List<({String kind, String reads, String cannot})> canRead = [
+  (
+    kind: 'Native views',
+    reads: 'Each view\'s class, resource id, place, depth and what can be done to it, and a few words of its text or description.',
+    cannot: 'What is typed in a password field: it is never read. A view the app hides from accessibility.',
+  ),
+  (
+    kind: 'Jetpack Compose',
+    reads: 'The nodes Compose gives to accessibility: places, a few words of text, what can be done. They are marked "Compose, likely", since the tree alone cannot tell Compose from native views for certain.',
+    cannot: 'Composable names. Ids, unless the app turns its test tags into ids.',
+  ),
+  (
+    kind: 'React Native',
+    reads: 'The native views React Native made, with the testID of each where the app gave one, their places and labels.',
+    cannot: 'Component names and props: they are not in a release build. A development build\'s component tree is not read.',
+  ),
+  (
+    kind: 'Flutter',
+    reads: 'Flutter\'s semantics tree: the label, actions and place of each node, and that the page draws to a surface of its own.',
+    cannot: 'Widget names, render objects and layers: they are not in a release build. Anything with no semantics, such as a picture or a background.',
+  ),
+  (
+    kind: 'Unity, .NET, Cordova, Capacitor, web views',
+    reads: 'Read as native views. A web view shows what the web view itself gives to accessibility.',
+    cannot: 'A game\'s own scene, which is not made of views.',
+  ),
+];
+
+/// The two things true of every kind, for the page and for Settings.
+const String hiddenViewsNote = 'Some apps hide parts of their screen from X-ray. On Android 14 and later, views an app marks as sensitive, such as banking and payment screens, are left out of what X-ray is given.';
+const String flutterNavigationNote = 'Reading a Flutter app switches on Flutter\'s accessible navigation in that app. It stays on until X-ray\'s switch in Accessibility is turned off.';

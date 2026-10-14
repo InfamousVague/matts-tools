@@ -4,6 +4,7 @@ import 'package:frames/settings/kit/settings_kit.dart';
 import 'package:frames/settings/level_slider.dart';
 import 'package:frames/shell/app_shell.dart';
 import 'package:frames/tools.dart';
+import 'package:frames/xray/xray.dart' show canRead;
 import 'package:glacier/glacier.dart';
 
 import '../support/fake_phone.dart';
@@ -226,7 +227,7 @@ void main() {
   testWidgets('About: the version, each permission with where it stands, and this build', (tester) async {
     await page(tester, 'about');
     expect(find.text('1.0.1'), findsOneWidget);
-    for (final key in ['notifications', 'overlay', 'usage', 'access', 'write', 'dump', 'secure', 'setup']) {
+    for (final key in ['notifications', 'overlay', 'usage', 'access', 'write', 'dump', 'secure', 'setup', 'xray']) {
       expect(row('granted.$key'), findsOneWidget, reason: key);
     }
     expect(find.descendant(of: row('granted.overlay'), matching: find.text('Given')), findsOneWidget);
@@ -240,6 +241,39 @@ void main() {
     expect(find.descendant(of: row('build.Version'), matching: find.text('1.0.1 (2)')), findsOneWidget);
     expect(find.descendant(of: row('build.Phone'), matching: find.text('samsung SM-F971U')), findsOneWidget);
     await endApp(tester);
+  });
+
+  testWidgets('About names five tools and has X-ray\'s switch row, which goes to Accessibility', (tester) async {
+    await page(tester, 'about');
+    expect(find.textContaining('Toasty and X-ray in one app'), findsOneWidget);
+    await press(tester, find.descendant(of: row('granted.xray'), matching: find.byType(RowAction)));
+    expect(fake.of('openSetting').last.arguments, 'accessibility');
+    await endApp(tester);
+  });
+
+  testWidgets('X-ray\'s page of Settings: its switch, the DUMP line, and what it can read of each kind', (tester) async {
+    await page(tester, 'xray');
+    expect(find.descendant(of: row('xray.switch'), matching: find.text('Open Accessibility')), findsOneWidget);
+    await press(tester, find.descendant(of: row('xray.switch'), matching: find.byType(RowAction)));
+    expect(fake.of('xray').where((c) => (c.arguments as Map)['do'] == 'ask').length, 1);
+    for (final k in canRead) {
+      expect(row('xray.reads.${k.kind}'), findsOneWidget, reason: k.kind);
+    }
+    expect(row('xray.hidden'), findsOneWidget);
+    expect(row('xray.navigation'), findsOneWidget);
+    expect(find.descendant(of: row('xray.dump'), matching: find.text('Given')), findsOneWidget);
+    await endApp(tester);
+    fake.granted['dump'] = false;
+    fake.granted['xray'] = true;
+    await page(tester, 'xray');
+    expect(find.text('adb shell pm grant com.mattssoftware.tools android.permission.DUMP'), findsOneWidget);
+    expect(find.descendant(of: row('xray.switch'), matching: find.text('On')), findsOneWidget);
+    await endApp(tester);
+  });
+
+  test('a granted map without X-ray\'s key does not throw', () {
+    final g = Granted({'notifications': true, 'overlay': true, 'usage': true, 'access': false, 'write': false, 'dump': true, 'secure': true});
+    expect(g.xray, isFalse);
   });
 
   testWidgets('a permission given from a computer says the command while it is not', (tester) async {

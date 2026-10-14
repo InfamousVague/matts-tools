@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:glacier/glacier.dart';
 
+import '../shell/app_shell.dart';
 import '../tools.dart';
 import '../ui.dart';
 import 'xray.dart';
@@ -68,6 +69,16 @@ class _XrayPageState extends State<XrayPage> {
         const Heading('Last capture'),
         if (capture == null) const Note('Nothing captured. Start X-ray from its tile over an app, then tap Open on its bar.') else _capture(context, capture),
       ],
+      const Heading('What X-ray can read'),
+      Panel(
+        key: const ValueKey('xray.canread'),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          for (final k in canRead) ..._kindWords(context, k),
+          Txt(hiddenViewsNote, size: 'sm', color: 'text-muted'),
+          SizedBox(height: context.tokens.space(3)),
+          const Txt(flutterNavigationNote, size: 'sm', color: 'text-muted'),
+        ]),
+      ),
       const Heading('Apps'),
       const Note('Choose an app to see what it is built with, read from the files of its package. Nothing is run, installed or sent anywhere.'),
       if (apps == null) const Note('Reading the apps...') else if (apps.isEmpty) const Note('No apps could be listed.'),
@@ -82,6 +93,17 @@ class _XrayPageState extends State<XrayPage> {
             onTap: () => open(context, AnatomyPage(app: app), place: 'xray/anatomy:${app.package}'),
           ),
     ]);
+  }
+
+  List<Widget> _kindWords(BuildContext context, ({String kind, String reads, String cannot}) k) {
+    final t = context.tokens;
+    return [
+      Txt(k.kind, weight: 'semibold'),
+      SizedBox(height: t.space(1)),
+      Txt('Reads: ${k.reads}', size: 'sm', color: 'text-muted'),
+      Txt('Cannot read: ${k.cannot}', size: 'sm', color: 'text-muted'),
+      SizedBox(height: t.space(3)),
+    ];
   }
 
   Widget _switchOff(BuildContext context) {
@@ -121,6 +143,8 @@ class _XrayPageState extends State<XrayPage> {
         Txt('${c.count} ${c.count == 1 ? 'box' : 'boxes'}', size: 'xl', weight: 'semibold'),
         if (c.cut) const Txt('Cut short: X-ray reads at most 3000 boxes, 64 deep.', size: 'sm', color: 'text-muted'),
         if (c.inspectors.isNotEmpty) Txt('Read as ${_and(c.inspectors)}', size: 'sm', color: 'text-muted'),
+        SizedBox(height: t.space(3)),
+        Btn('Walk the tree', onPressed: () => AppShell.of(context).go(xrayTreePlace)),
         SizedBox(height: t.space(4)),
         const Txt('Compositor layers', weight: 'semibold'),
         SizedBox(height: t.space(1)),
