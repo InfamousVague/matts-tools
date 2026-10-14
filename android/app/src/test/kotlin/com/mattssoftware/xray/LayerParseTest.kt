@@ -169,6 +169,28 @@ class LayerParseTest {
         assertNull(LayerParse.pick(app, 5000, 5000))
     }
 
+    @Test fun tappingTheSameSpotAgainStepsDownThroughTheLayersThere() {
+        // On the Frames page the view root, the Flutter surface and its background all fill the screen: a tap that
+        // always took the topmost could never reach the surface.
+        val app = of("tools-frames-sf-list.txt", "com.mattssoftware.tools", "tools-frames-sf-full.txt", flutter = true)
+        val first = LayerParse.pick(app, 600, 900)
+        val second = LayerParse.pick(app, 600, 900, first?.id)
+        val third = LayerParse.pick(app, 600, 900, second?.id)
+        assertEquals(listOf(783, 788, 789), listOf(first?.id, second?.id, third?.id))
+        // Under the last, back to the top.
+        assertEquals(783, LayerParse.pick(app, 600, 900, third?.id)?.id)
+        // A layer picked that is not at the spot does not count: the topmost there is taken.
+        assertEquals(783, LayerParse.pick(app, 600, 900, 782)?.id)
+    }
+
+    @Test fun cardSaysHowManyLayersAreAtTheSpot() {
+        val app = of("tools-frames-sf-list.txt", "com.mattssoftware.tools", "tools-frames-sf-full.txt", flutter = true)
+        val surface = app.single { it.id == 788 }
+        assertEquals("2 of 3 here, from the top: tap again for the one under it", LayerParse.card(surface, app.size, LayerParse.here(app, surface, 600, 900)).last())
+        // Alone at its spot, nothing is said of others.
+        assertEquals(4, LayerParse.card(surface, app.size, LayerParse.here(listOf(surface), surface, 600, 900)).size)
+    }
+
     @Test fun cardSaysKindNamePlaceAndOrder() {
         val app = of("tools-frames-sf-list.txt", "com.mattssoftware.tools", "tools-frames-sf-full.txt", flutter = true)
         val card = LayerParse.card(app.single { it.id == 788 }, app.size)

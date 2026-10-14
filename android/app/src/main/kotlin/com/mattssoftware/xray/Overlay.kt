@@ -31,7 +31,7 @@ import kotlin.math.roundToInt
  * tap picks the innermost box there, and the window stops short of the status bar and the navigation bar, on whatever
  * edge it stands, so the shade, home, back and recents still work.
  * With Layers on, the compositor's surfaces for the app (Layers.kt) are outlined instead, coloured by their order, and
- * a tap picks the topmost of them.
+ * a tap picks the topmost of them, and a tap there again the one under it.
  */
 class Overlay(private val service: XrayAccess) {
     private val windows = service.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -53,8 +53,9 @@ class Overlay(private val service: XrayAccess) {
     private var capture: Capture? = null
     private var peel = XrayTree.Peel()
     private var select = false
-    /** The layer picked with Layers on, by its id. */
+    /** The layer picked with Layers on, by its id, and where it was tapped: a tap there again picks the one under it. */
     private var pickedLayer: Int? = null
+    private var pickedAt: Pair<Int, Int>? = null
     /** Where the bar's top left corner is on the screen. */
     private var barX = 0
     private var barY = 0
@@ -219,7 +220,7 @@ class Overlay(private val service: XrayAccess) {
         card?.let { v ->
             val lines = when {
                 read?.why != null -> listOf(read.why, Layers.command(service))
-                picked != null -> LayerParse.card(picked, layers.size)
+                picked != null -> LayerParse.card(picked, layers.size, pickedAt?.let { (x, y) -> LayerParse.here(layers, picked, x, y) })
                 else -> null
             }
             if (lines == null) v.visibility = View.GONE else { v.text = lines.joinToString("\n"); v.visibility = View.VISIBLE }
@@ -229,7 +230,11 @@ class Overlay(private val service: XrayAccess) {
 
     private fun picked(x: Int, y: Int) {
         val c = capture ?: return
-        if (service.layersOn) { pickedLayer = c.layers?.layers?.let { LayerParse.pick(it, x, y) }?.id; refresh(); return }
+        if (service.layersOn) {
+            pickedLayer = c.layers?.layers?.let { LayerParse.pick(it, x, y, pickedLayer) }?.id
+            pickedAt = x to y
+            refresh(); return
+        }
         val box = XrayTree.pick(c.reading.boxes.filter { peel.shows(it) }, x, y)
         c.picked = box?.i
         refresh()
@@ -325,7 +330,7 @@ class Overlay(private val service: XrayAccess) {
         first.addView(grip, LinearLayout.LayoutParams(dp(20f), dp(40f)))
         selectButton = button("Select") { select = !select; touchable(); refresh() }
         first.addView(selectButton, cell())
-        layersButton = button("Layers") { service.layers(!service.layersOn); pickedLayer = null; refresh() }
+        layersButton = button("Layers") { service.layers(!service.layersOn); pickedLayer = null; pickedAt = null; refresh() }
         first.addView(layersButton, cell())
         first.addView(button("Open") { service.open() }, cell())
         first.addView(button("Close") { service.stop(false) }, cell())

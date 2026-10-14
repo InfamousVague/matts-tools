@@ -199,14 +199,33 @@ object LayerParse {
         return at to shown
     }
 
-    /** The topmost of [layers] with a place at [x], [y]. */
-    fun pick(layers: List<AppLayer>, x: Int, y: Int): AppLayer? = layers.filter { it.place?.has(x, y) == true }.maxByOrNull { it.order }
+    /** The layers of [layers] with a place at [x], [y], top first. */
+    private fun at(layers: List<AppLayer>, x: Int, y: Int) = layers.filter { it.place?.has(x, y) == true }.sortedByDescending { it.order }
 
-    /** What the overlay's card says of [layer], one of [of]. */
-    fun card(layer: AppLayer, of: Int): List<String> = listOf(
+    /**
+     * The topmost of [layers] with a place at [x], [y]; or, where [after] is the id of one of them, the one under it,
+     * and the topmost again under the last. A window's frames, its Flutter surface and the surface's background often
+     * fill the same place, so a tap that always took the topmost could never reach the ones beneath.
+     */
+    fun pick(layers: List<AppLayer>, x: Int, y: Int, after: Int? = null): AppLayer? {
+        val here = at(layers, x, y)
+        val i = here.indexOfFirst { it.id == after }
+        return if (i < 0) here.firstOrNull() else here[(i + 1) % here.size]
+    }
+
+    /** Where [layer] is among the layers at [x], [y]: which, from the top, and of how many; null where it is not there. */
+    fun here(layers: List<AppLayer>, layer: AppLayer, x: Int, y: Int): Pair<Int, Int>? {
+        val here = at(layers, x, y)
+        val i = here.indexOfFirst { it.id == layer.id }
+        return if (i < 0) null else (i + 1) to here.size
+    }
+
+    /** What the overlay's card says of [layer], one of [of], and, where others share its spot, which of them it is ([here]). */
+    fun card(layer: AppLayer, of: Int, here: Pair<Int, Int>? = null): List<String> = listOfNotNull(
         layer.words,
         layer.name,
         layer.place?.let { "${it.l}, ${it.t}, ${it.width} by ${it.height}" } ?: "Place not given",
         "${layer.order + 1} of $of from the bottom, z ${layer.z}",
+        here?.takeIf { it.second > 1 }?.let { (at, count) -> "$at of $count here, from the top: tap again for the one under it" },
     )
 }
