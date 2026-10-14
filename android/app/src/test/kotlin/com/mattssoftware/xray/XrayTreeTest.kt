@@ -377,6 +377,18 @@ class XrayTreeTest {
         assertEquals(154 + margin, y2)
     }
 
+    @Test fun turnedWithThreeButtonsAtTheRightTheBarStaysOffThemAndOnTheScreen() {
+        // Turned a quarter with three-button navigation: 1972 by 1248, the buttons down the right edge, 126 px wide, the
+        // camera's cut-out down the left. Asked for where it stood upright, near the top, the bar stays near the top.
+        val side = Area(0, 492, 128, 610)
+        val (x, y) = XrayTree.keep(Area(1500, 175, 2235, 524), 1972, 1248, 64, 0, listOf(side), margin, left = 0, right = 126)
+        assertEquals(1972 - 126 - 735, x)
+        assertEquals(175, y)
+        // On the left, the buttons push it right.
+        val (x2, _) = XrayTree.keep(Area(0, 600, 735, 949), 1972, 1248, 64, 0, emptyList(), margin, left = 126)
+        assertEquals(126, x2)
+    }
+
     // ---- whose switch is on ----
 
     @Test fun theLineShownAsAccessibilityOpensFitsInTheTwoLinesOfAToast() {

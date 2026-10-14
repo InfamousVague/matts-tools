@@ -87,9 +87,6 @@ class Overlay(private val service: XrayAccess) {
             @Suppress("DEPRECATION") windows.defaultDisplay.cutout?.boundingRects?.let { cuts += it }
         }
         val keepOut = cuts.filter { !it.isEmpty }.map { XrayTree.Area(it.left, it.top, it.right, it.bottom) }.toMutableList()
-        // A navigation bar at a side edge: the bar keeps off it as off the camera.
-        if (left > 0) keepOut += XrayTree.Area(0, 0, left, tall)
-        if (right > 0) keepOut += XrayTree.Area(wide - right, 0, wide, tall)
         // The Dock beside the camera reaches past the cut-out by its frame (dock/Dock.kt `gap`), and on a screen
         // whose cut-out is taller than the hole it is pushed down further: the bar keeps clear of that frame too.
         runCatching {
@@ -273,7 +270,7 @@ class Overlay(private val service: XrayAccess) {
         val cardH = if (k.visibility == View.VISIBLE && k.height > 0) k.height + dp(8f) else 0
         val w = at.width.takeIf { it > 0 } ?: width(s)
         val top = if (above) barY - cardH else barY
-        val (x, y) = XrayTree.keep(XrayTree.Area(barX, top, barX + w, top + barH + cardH), s.wide, s.tall, s.top, s.bottom + dp(8f), s.keepOut, dp(8f))
+        val (x, y) = XrayTree.keep(XrayTree.Area(barX, top, barX + w, top + barH + cardH), s.wide, s.tall, s.top, s.bottom + dp(8f), s.keepOut, dp(8f), s.left, s.right)
         barX = x; barY = if (above) y + cardH else y
         if (at.x != barX || at.y != barY) {
             at.x = barX; at.y = barY

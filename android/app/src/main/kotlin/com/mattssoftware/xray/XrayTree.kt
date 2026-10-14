@@ -283,12 +283,13 @@ object XrayTree {
 
     /**
      * Where a window of X-ray's controls, wanted at [at], may sit on a screen [wide] by [tall]: on the screen, under the
-     * status bar's strip ([top]), above the navigation bar ([bottom]), and [margin] clear of each of [keepOut] (the
-     * camera's cut-out, and the Dock's frame round it), which bars the whole band along the edge it is nearest, so the
-     * controls never land under the camera whatever way the phone is turned.
+     * status bar's strip ([top]), above the navigation bar ([bottom]), off a navigation bar that stands at the [left]
+     * or [right] edge of a turned phone, and [margin] clear of each of [keepOut] (the camera's cut-out, and the Dock's
+     * frame round it), which bars the whole band along the edge it is nearest, so the controls never land under the
+     * camera whatever way the phone is turned.
      */
-    fun keep(at: Area, wide: Int, tall: Int, top: Int, bottom: Int, keepOut: List<Area>, margin: Int): Pair<Int, Int> {
-        var minX = 0; var maxX = wide - at.width
+    fun keep(at: Area, wide: Int, tall: Int, top: Int, bottom: Int, keepOut: List<Area>, margin: Int, left: Int = 0, right: Int = 0): Pair<Int, Int> {
+        var minX = left; var maxX = wide - right - at.width
         var minY = top; var maxY = tall - bottom - at.height
         for (k in keepOut) {
             val edges = listOf(k.t, k.l, wide - k.r, tall - k.b)
