@@ -94,6 +94,25 @@ class XrayTreeTest {
         assertTrue(r.boxes.none { b -> listOf("Scaffold", "Text", "ElevatedButton", "Widget").any { b.cls?.contains(it) == true } })
     }
 
+    @Test fun aFlutterPageWithAFilledFieldAListARadioGroupAndAMenuIsStillFlutter() {
+        val r = XrayTree.read(root("flutter-filled-by-hand.xml"), flutter)
+        assertEquals(17, r.boxes.size)
+        val host = r.boxes.single { it.kind == "flutter view" }
+        assertEquals(3, host.depth)
+        // The typed-into field, whose value Flutter gives as text, and the classes the bridge adds for lists, radio
+        // groups and menus, are semantics nodes like the rest.
+        for (cls in listOf("android.widget.EditText", "android.widget.ListView", "android.widget.RadioGroup", "android.view.MenuItem")) {
+            assertEquals(cls, "flutter", r.boxes.single { it.cls == cls }.inspector)
+        }
+        assertEquals("Shopping list", r.boxes.single { it.cls == "android.widget.EditText" }.label)
+        assertEquals(11, r.boxes.count { it.inspector == "flutter" })
+        // The native map the page embeds, with its app's id, stays native, and so does what is under it.
+        assertEquals("native", r.boxes.single { it.id == "com.example.notes:id/map" }.inspector)
+        assertEquals("native", r.boxes.single { it.label == "Map pin" }.inspector)
+        assertEquals(listOf("Native", "Flutter"), r.inspectors)
+        assertTrue(XrayTree.card(r.boxes.single { it.label == "Save" }, flutter).contains("Widget names are not in a release build"))
+    }
+
     @Test fun withoutFlutterInThePackageTheFramesPageReadsAsNative() {
         val r = XrayTree.read(root("tools-frames-uiautomator.xml"), native)
         assertTrue(r.boxes.all { it.inspector == "native" })

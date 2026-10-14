@@ -120,13 +120,19 @@ object XrayTree {
         val order: Int, val can: List<String>, val password: Boolean, val visible: Boolean,
     ) { val children = ArrayList<Int>() }
 
-    // The classes Flutter's bridge gives its semantics nodes (facts.md 4d), and Compose its nodes (4b).
+    // The classes Flutter's bridge gives its semantics nodes (facts.md 4d; the engine's BaseRoleConfigurator.java and
+    // RoleConfiguratorFactory.java, which add ListView, RadioGroup and MenuItem), and Compose its nodes (4b).
     private val flutterClasses = setOf(
         "android.view.View", "android.widget.Button", "android.widget.EditText", "android.widget.ImageView", "android.widget.SeekBar",
         "android.widget.ScrollView", "android.widget.HorizontalScrollView", "android.widget.RadioButton", "android.widget.CheckBox",
-        "android.widget.Switch", "android.widget.ProgressBar", "android.widget.Spinner",
+        "android.widget.Switch", "android.widget.ProgressBar", "android.widget.Spinner", "android.widget.ListView",
+        "android.widget.RadioGroup", "android.view.MenuItem",
     )
-    private val composeClasses = flutterClasses + setOf("android.widget.TextView", "android.widget.NumberPicker")
+    private val composeClasses = setOf(
+        "android.view.View", "android.widget.Button", "android.widget.EditText", "android.widget.ImageView", "android.widget.SeekBar",
+        "android.widget.ScrollView", "android.widget.HorizontalScrollView", "android.widget.RadioButton", "android.widget.CheckBox",
+        "android.widget.Switch", "android.widget.ProgressBar", "android.widget.Spinner", "android.widget.TextView", "android.widget.NumberPicker",
+    )
     private val composeHosts = setOf("android.view.ViewGroup", "androidx.compose.ui.platform.ComposeView", "androidx.compose.ui.platform.AndroidComposeView")
 
     private fun prefixed(id: String?) = id != null && id.contains(":id/")
@@ -156,16 +162,25 @@ object XrayTree {
         val inspector = arrayOfNulls<String>(nodes.size)
         val kind = Array(nodes.size) { "view" }
 
-        // Flutter: the host is a FrameLayout whose whole subtree is Flutter's bridge (its classes only, no id of a
-        // package, no text in text: Flutter puts its words in the description). Its nodes are semantics nodes.
+        // Flutter: the host is told by itself and its child, not by every node under it, since one ordinary node (a
+        // filled text field, whose value Flutter puts in text, or a list) must not unmake the whole screen. The host is
+        // a FrameLayout with no id of a package whose children are Flutter's root semantics node: an android.view.View
+        // with no id of a package and no text (Flutter puts a label in the description). Under it, a node of the
+        // bridge's classes with no id of a package is a semantics node; anything else is a native view Flutter embeds,
+        // and it and what is under it stay native.
         if (kinds.flutter) {
-            fun bridge(i: Int): Boolean = nodes[i].children.all { c -> nodes[c].let { n -> n.cls in flutterClasses && !prefixed(n.id) && !n.hasText } && bridge(c) }
-            fun anyView(i: Int): Boolean = nodes[i].children.any { nodes[it].cls == "android.view.View" || anyView(it) }
-            fun mark(i: Int) { for (c in nodes[i].children) { inspector[c] = "flutter"; kind[c] = "semantics node"; mark(c) } }
+            fun root(c: Int) = nodes[c].let { n -> n.cls == "android.view.View" && !prefixed(n.id) && !n.hasText }
+            fun mark(i: Int) {
+                for (c in nodes[i].children) {
+                    val n = nodes[c]
+                    if (n.cls !in flutterClasses || prefixed(n.id)) continue
+                    inspector[c] = "flutter"; kind[c] = "semantics node"; mark(c)
+                }
+            }
             for (i in nodes.indices) {
                 val n = nodes[i]
                 if (inspector[i] != null || n.cls != "android.widget.FrameLayout" || n.children.isEmpty() || prefixed(n.id)) continue
-                if (bridge(i) && anyView(i)) { kind[i] = "flutter view"; inspector[i] = "native"; mark(i) }
+                if (n.children.all { root(it) }) { kind[i] = "flutter view"; inspector[i] = "native"; mark(i) }
             }
         }
 
