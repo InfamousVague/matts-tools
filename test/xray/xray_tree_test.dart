@@ -67,6 +67,35 @@ void main() {
     await endApp(tester);
   });
 
+  testWidgets('the page Open lands on lists the compositor layers Open read, top first, the Flutter surface and its background with their places', (tester) async {
+    // The Frames page's layers on the emulator, as xray/LayerParse.kt reads them (LayerParseTest), bottom to top.
+    await arrive(tester, {
+      ...framesCapture(),
+      'layers': [
+        {'id': 782, 'name': '12a0f75 com.mattssoftware.tools/com.mattssoftware.frames.MainActivity#782', 'kind': 'window', 'words': 'Window', 'z': 0, 'order': 0},
+        {'id': 789, 'name': 'Background for 217b6d7 SurfaceView[com.mattssoftware.tools/com.mattssoftware.frames.MainActivity](BLAST)#789', 'kind': 'background', 'words': 'Background behind the surface', 'z': -1, 'order': 1, 'l': 0, 't': 0, 'r': 1248, 'b': 1972},
+        {'id': 788, 'name': '217b6d7 SurfaceView[com.mattssoftware.tools/com.mattssoftware.frames.MainActivity](BLAST)#788', 'kind': 'surface', 'words': 'Flutter surface', 'z': 0, 'order': 2, 'l': 0, 't': 0, 'r': 1248, 'b': 1972},
+        {'id': 783, 'name': 'com.mattssoftware.tools/com.mattssoftware.frames.MainActivity#783', 'kind': 'view root', 'words': 'View root: the window\'s frames', 'z': 0, 'order': 3, 'l': 0, 't': 0, 'r': 1248, 'b': 1972},
+      ],
+      'layersWhy': null,
+    });
+    expect(find.text('Compositor layers'), findsOneWidget);
+    expect(find.text('Flutter surface'), findsOneWidget);
+    expect(find.text('Background behind the surface'), findsOneWidget);
+    expect(find.text('Window'), findsOneWidget);
+    expect(find.text('0, 0, 1248 by 1972, z 0'), findsNWidgets(2));
+    expect(find.text('0, 0, 1248 by 1972, z -1'), findsOneWidget);
+    expect(tester.getTopLeft(find.text('Flutter surface')).dy, lessThan(tester.getTopLeft(find.text('Background behind the surface')).dy));
+    await endApp(tester);
+  });
+
+  testWidgets('without the computer\'s permission the tree page says why there are no layers, with the line to run', (tester) async {
+    await arrive(tester, {...framesCapture(), 'layers': null, 'layersWhy': 'Not available: Android lets an app read the compositor only after a computer says so, once.'});
+    expect(find.text('Not available: Android lets an app read the compositor only after a computer says so, once.'), findsOneWidget);
+    expect(find.text('adb shell pm grant com.mattssoftware.tools android.permission.DUMP'), findsOneWidget);
+    await endApp(tester);
+  });
+
   testWidgets('a Flutter capture says widget names are not in a release build', (tester) async {
     await arrive(tester, framesCapture());
     expect(find.textContaining('Widget names are not in a release build'), findsWidgets);

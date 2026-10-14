@@ -218,6 +218,17 @@ class _XrayTreePageState extends State<XrayTreePage> {
         SizedBox(height: t.space(3)),
         for (final row in treeRows(c.boxes, _open)) ..._row(context, c, row, row.box.i == _picked ? card : null),
       ],
+      // Open reads the layers once before it lands here, so this is where they are seen: the surfaces the compositor
+      // stacks in one place cannot all be told apart on the overlay.
+      SizedBox(height: t.space(4)),
+      Panel(
+        key: const ValueKey('xray.tree.layers'),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Txt('Compositor layers', weight: 'semibold'),
+          SizedBox(height: t.space(1)),
+          ...layerLines(context, c.layers, c.layersWhy),
+        ]),
+      ),
       SizedBox(height: t.space(4)),
       Btn('Forget it', onPressed: _forget),
     ];
