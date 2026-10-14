@@ -260,6 +260,31 @@ class XrayTreeTest {
         assertEquals(0, XrayTree.pick(r.boxes.filter { it.depth == 0 }, 400, 705)!!.depth)
     }
 
+    @Test fun thePickOfTheFlutterViewOutlivesTheNextReadingAndIsNotTakenByTheShellAroundIt() {
+        // The shell's three boxes and the Flutter view are all at 0, 0, 1248 by 1972, two of them FrameLayouts with no id.
+        val first = XrayTree.read(root("tools-frames-uiautomator.xml"), flutter)
+        val again = XrayTree.read(root("tools-frames-uiautomator.xml"), flutter)
+        val host = XrayTree.pick(first.boxes.filter { XrayTree.Peel(3).shows(it) }, 600, 1000)!!
+        assertEquals("flutter view", host.kind)
+        val kept = again.boxes[XrayTree.same(host, again.boxes)!!]
+        assertEquals("flutter view", kept.kind)
+        assertEquals(3, kept.depth)
+        // Each box of the first reading is found again as itself.
+        for (b in first.boxes) assertEquals(b.i, XrayTree.same(b, again.boxes))
+        assertNull(XrayTree.same(null, again.boxes))
+    }
+
+    @Test fun aPickThatPeelNoLongerDrawsIsLetGo() {
+        val boxes = XrayTree.read(root("tools-frames-uiautomator.xml"), flutter).boxes
+        val diagnostics = boxes.single { it.label == "Diagnostics" }
+        assertEquals(diagnostics.i, XrayTree.shown(diagnostics.i, boxes, XrayTree.Peel()))
+        assertNull(XrayTree.shown(diagnostics.i, boxes, XrayTree.Peel(4)))
+        assertNull(XrayTree.shown(3, boxes, XrayTree.Peel(4, only = true)))
+        assertEquals(3, XrayTree.shown(3, boxes, XrayTree.Peel(3, only = true)))
+        assertNull(XrayTree.shown(null, boxes, XrayTree.Peel()))
+        assertNull(XrayTree.shown(99, boxes, XrayTree.Peel()))
+    }
+
     @Test fun theCardSaysPlaceDepthAndWhatCanBeDone() {
         val r = XrayTree.read(root("tools-frames-uiautomator.xml"), flutter)
         val card = XrayTree.card(r.boxes.single { it.label == "Diagnostics" }, flutter)

@@ -274,7 +274,7 @@ class XrayAccess : AccessibilityService() {
                     got is Capture -> {
                         readings += 1
                         // A box picked before keeps its pick where the same box is still there.
-                        capture?.let { old -> old.picked?.let { p -> got.picked = same(old.reading.boxes.getOrNull(p), got.reading.boxes) } }
+                        capture?.let { old -> old.picked?.let { p -> got.picked = XrayTree.same(old.reading.boxes.getOrNull(p), got.reading.boxes) } }
                         capture = got
                         got.layers?.let { lastLayers = it }
                         appWindow = got.window
@@ -284,10 +284,6 @@ class XrayAccess : AccessibilityService() {
                 if (again) { again = false; schedule(0L) }
             }
         }
-    }
-
-    private fun same(box: XrayTree.Box?, boxes: List<XrayTree.Box>): Int? = box?.let { b ->
-        boxes.firstOrNull { it.cls == b.cls && it.id == b.id && it.area.l == b.area.l && it.area.t == b.area.t && it.area.r == b.area.r && it.area.b == b.area.b }?.i
     }
 
     /** On the reading thread: the topmost application window's tree, or [LOCKED] where the lock screen is up. */

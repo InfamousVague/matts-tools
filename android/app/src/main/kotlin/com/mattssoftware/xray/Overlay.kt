@@ -157,6 +157,8 @@ class Overlay(private val service: XrayAccess) {
         if (service.layersOn) { refreshLayers(); return }
         val c = capture
         val deepest = deepest()
+        // A box Peel no longer draws is no longer picked: its card would stand for nothing on the screen.
+        c?.let { it.picked = XrayTree.shown(it.picked, it.reading.boxes, peel) }
         outlines?.let { v ->
             v.marks = c?.reading?.boxes?.filter { it.visible && peel.shows(it) }?.map { it.area to it.depth } ?: emptyList()
             v.picked = c?.picked?.let { c.reading.boxes.getOrNull(it) }?.let { it.area to it.depth }

@@ -238,6 +238,18 @@ object XrayTree {
             .sortedWith(compareByDescending<Box> { it.depth }.thenBy { it.area.width.toLong() * it.area.height }.thenByDescending { it.i })
             .firstOrNull()
 
+    /**
+     * The box of a new reading that is [box] of the last one, so a pick outlives the readings that follow it. Its depth
+     * counts as much as its class, id and place: a shell's boxes are often all FrameLayouts with no id over the whole
+     * screen, and without it the outermost would take the pick of the Flutter view inside it.
+     */
+    fun same(box: Box?, boxes: List<Box>): Int? = box?.let { b ->
+        boxes.firstOrNull { it.depth == b.depth && it.kind == b.kind && it.cls == b.cls && it.id == b.id && it.area.l == b.area.l && it.area.t == b.area.t && it.area.r == b.area.r && it.area.b == b.area.b }?.i
+    }
+
+    /** The pick, where Peel still shows the box picked; otherwise none, so no card is left for a box not drawn. */
+    fun shown(picked: Int?, boxes: List<Box>, peel: Peel): Int? = picked?.takeIf { p -> boxes.getOrNull(p)?.let { peel.shows(it) } == true }
+
     /** What the card says of [box], at most six lines. [surface]: the compositor showed the app's Flutter surface. */
     fun card(box: Box, kinds: Kinds, surface: Boolean = false): List<String> {
         val lines = ArrayList<String>()
