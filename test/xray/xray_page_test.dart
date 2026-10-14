@@ -116,6 +116,56 @@ void main() {
     await endApp(tester);
   });
 
+  testWidgets('with X-ray\'s switch off the page asks at once, once, and keeps its apps and the way to the switch', (tester) async {
+    fake.xrayState['on'] = false;
+    await pumpApp(tester, size: const Size(390, 1400), home: const AppShell(first: xrayPlace));
+    await settle(tester);
+    // Some seconds of the page looking again: still asked only once on this arrival.
+    for (var i = 0; i < 4; i++) {
+      await tester.pump(const Duration(seconds: 1));
+    }
+    expect(fake.of('xray').where((c) => (c.arguments as Map)['do'] == 'ask').length, 1);
+    expect(find.byKey(const ValueKey('xray.switch')), findsOneWidget);
+    expect(find.text('Open Accessibility'), findsOneWidget);
+    expect(find.textContaining('If the switch is greyed out'), findsOneWidget);
+    expect(find.text('Maps'), findsOneWidget);
+    await tester.tap(find.text('Open Accessibility'));
+    await settle(tester);
+    expect(fake.of('xray').where((c) => (c.arguments as Map)['do'] == 'ask').length, 2);
+    await shot(tester, 'xray-switch-off');
+    await endApp(tester);
+  });
+
+  testWidgets('with the switch on the page asks nothing, and shows the last capture\'s app, count and inspectors', (tester) async {
+    fake.xrayState['capture'] = {'package': 'com.mattssoftware.tools', 'label': 'Matt\'s Tools', 'count': 18, 'windows': 1, 'inspectors': ['Native', 'Flutter'], 'at': 0, 'picked': null, 'cut': false};
+    await pumpApp(tester, size: const Size(390, 1400), home: const AppShell(first: xrayPlace));
+    await settle(tester);
+    expect(fake.of('xray').where((c) => (c.arguments as Map)['do'] == 'ask'), isEmpty);
+    expect(find.text('X-ray is on. Start it from its tile over the app you want to look into.'), findsOneWidget);
+    expect(find.byKey(const ValueKey('xray.capture')), findsOneWidget);
+    expect(find.text('18 boxes'), findsOneWidget);
+    expect(find.text('Read as Native and Flutter'), findsOneWidget);
+    await shot(tester, 'xray-capture');
+    // Closed on the phone: the state says there is none, and the page lets its copy go.
+    fake.xrayState['capture'] = null;
+    await tester.pump(const Duration(seconds: 1));
+    await settle(tester);
+    expect(find.byKey(const ValueKey('xray.capture')), findsNothing);
+    expect(find.text('18 boxes'), findsNothing);
+    await endApp(tester);
+  });
+
+  test('a state or capture that leaves keys out reads with defaults', () {
+    final s = XrayState({'capture': {'count': 3}});
+    expect(s.on, isFalse);
+    expect(s.capture!.count, 3);
+    expect(s.capture!.inspectors, isEmpty);
+    final c = Capture({'boxes': [{'i': 0, 'label': 'Frames'}]});
+    expect(c.boxes.single.label, 'Frames');
+    expect(c.boxes.single.depth, 0);
+    expect(c.boxes.single.password, isFalse);
+  });
+
   test('an anatomy that leaves keys out reads as empty, not as an error', () {
     final a = Anatomy({'headline': 'Native'});
     expect(a.error, isNull);

@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import '../tools.dart';
 
 /// X-ray's side of the one channel (tools/Shell.kt `xray` answers it, in xray/Door.kt): what an app is made of,
-/// read on the phone from the files of its package. Every model reads its map with defaults, so an answer that
+/// read on the phone from the files of its package, and the last reading of a screen. Every model reads its map with defaults, so an answer that
 /// leaves a key out draws less and does not throw.
 
 /// A file named in the anatomy, with its size in bytes where one is known.
@@ -94,6 +94,88 @@ class Anatomy {
   final List<String> cannot;
 }
 
+/// What X-ray's page shows of the last reading of a screen before it is opened (xray/XrayAccess.kt `Capture.summary`).
+class CaptureSummary {
+  CaptureSummary(Map m)
+      : package = (m['package'] as String?) ?? '',
+        label = (m['label'] as String?) ?? '',
+        count = (m['count'] as num?)?.toInt() ?? 0,
+        windows = (m['windows'] as num?)?.toInt() ?? 0,
+        inspectors = [for (final i in (m['inspectors'] as List?) ?? const []) i as String],
+        at = (m['at'] as num?)?.toInt() ?? 0,
+        picked = (m['picked'] as num?)?.toInt(),
+        cut = (m['cut'] as bool?) ?? false;
+  final String package, label;
+  final int count, windows, at;
+
+  /// The inspectors that read some box: "Native", "Jetpack Compose, likely", "React Native", "Flutter".
+  final List<String> inspectors;
+  final int? picked;
+
+  /// The reading stopped at its limit of boxes or depth.
+  final bool cut;
+}
+
+/// X-ray's switch, whether it is drawing, and the last reading, if one is held (xray/Door.kt `state`).
+class XrayState {
+  XrayState(Map m)
+      : on = (m['on'] as bool?) ?? false,
+        running = (m['running'] as bool?) ?? false,
+        dump = (m['dump'] as bool?) ?? false,
+        capture = m['capture'] == null ? null : CaptureSummary(m['capture'] as Map);
+
+  /// Switched on in Accessibility, by the service's whole name.
+  final bool on;
+  final bool running, dump;
+  final CaptureSummary? capture;
+}
+
+/// One box of a reading (xray/XrayTree.kt `Box.toMap`).
+class CaptureBox {
+  CaptureBox(Map m)
+      : i = (m['i'] as num?)?.toInt() ?? 0,
+        parent = (m['parent'] as num?)?.toInt(),
+        depth = (m['depth'] as num?)?.toInt() ?? 0,
+        kind = (m['kind'] as String?) ?? 'view',
+        inspector = (m['inspector'] as String?) ?? 'native',
+        cls = m['cls'] as String?,
+        id = m['id'] as String?,
+        testId = m['testId'] as String?,
+        label = m['label'] as String?,
+        place = Rect.fromLTRB(((m['l'] as num?) ?? 0).toDouble(), ((m['t'] as num?) ?? 0).toDouble(), ((m['r'] as num?) ?? 0).toDouble(), ((m['b'] as num?) ?? 0).toDouble()),
+        can = [for (final c in (m['can'] as List?) ?? const []) c as String],
+        password = (m['password'] as bool?) ?? false;
+  final int i, depth;
+  final int? parent;
+  final String kind, inspector;
+  final String? cls, id, testId, label;
+
+  /// In the screen's own pixels.
+  final Rect place;
+  final List<String> can;
+  final bool password;
+}
+
+/// The whole of the last reading, for walking through (xray/XrayAccess.kt `Capture.toMap`).
+class Capture {
+  Capture(Map m)
+      : package = (m['package'] as String?) ?? '',
+        label = (m['label'] as String?) ?? '',
+        at = (m['at'] as num?)?.toInt() ?? 0,
+        width = (m['width'] as num?)?.toInt() ?? 0,
+        height = (m['height'] as num?)?.toInt() ?? 0,
+        boxes = [for (final b in (m['boxes'] as List?) ?? const []) CaptureBox(b as Map)],
+        inspectors = [for (final i in (m['inspectors'] as List?) ?? const []) i as String],
+        picked = (m['picked'] as num?)?.toInt(),
+        cut = (m['cut'] as bool?) ?? false;
+  final String package, label;
+  final int at, width, height;
+  final List<CaptureBox> boxes;
+  final List<String> inspectors;
+  final int? picked;
+  final bool cut;
+}
+
 class Xray {
   static const _channel = MethodChannel('frames');
 
@@ -101,6 +183,40 @@ class Xray {
 
   /// Every app that can be opened, by name, Matt's Tools among them.
   static Future<List<AppChoice>> apps() async => [for (final a in ((await _ask('apps')) as List?) ?? const []) AppChoice(a as Map)];
+
+  /// X-ray's switch and its last reading; null where the phone gives no answer.
+  static Future<XrayState?> state() async {
+    try {
+      final answer = await _ask('state');
+      return answer is Map ? XrayState(answer) : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// The whole of the last reading, or null where none is held.
+  static Future<Capture?> capture() async {
+    try {
+      final answer = await _ask('capture');
+      return answer is Map ? Capture(answer) : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Opens Accessibility at once, with the line saying what to switch on.
+  static Future<void> ask() async {
+    try {
+      await _ask('ask');
+    } catch (_) {}
+  }
+
+  /// Drops the last reading on the phone.
+  static Future<void> forget() async {
+    try {
+      await _ask('forget');
+    } catch (_) {}
+  }
 
   /// What [package] is made of. Never throws: a phone that cannot say gives an [Anatomy] with its [Anatomy.error].
   static Future<Anatomy> anatomy(String package) async {

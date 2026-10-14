@@ -45,6 +45,11 @@ class FakePhone {
   ];
   final Map<String, Map<String, Object?>> anatomies = {};
 
+  /// X-ray's switch and its last reading (xray/Door.kt `state`): on, not started, nothing captured. A test turns the
+  /// switch off or puts a capture here; `forget` drops it, as the phone's side does.
+  final Map<String, Object?> xrayState = {'on': true, 'running': false, 'dump': true, 'capture': null};
+  Map<String, Object?>? xrayCapture;
+
   /// The calls of [method], oldest first.
   List<MethodCall> of(String method) => [for (final call in calls) if (call.method == method) call];
 
@@ -74,6 +79,12 @@ class FakePhone {
         final args = call.arguments as Map;
         if (args['do'] == 'apps') return xrayApps;
         if (args['do'] == 'anatomy') return anatomies[args['package']] ?? {'error': 'Android would not let Matt\'s Tools read this app\'s package.'};
+        if (args['do'] == 'state') return xrayState;
+        if (args['do'] == 'capture') return xrayCapture;
+        if (args['do'] == 'forget') {
+          xrayState['capture'] = null;
+          xrayCapture = null;
+        }
         return null;
       case 'set':
         final args = call.arguments as Map;

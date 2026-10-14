@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:glacier/glacier.dart';
 
@@ -5,7 +7,9 @@ import '../tools.dart';
 import '../ui.dart';
 import 'xray.dart';
 
-/// X-ray's page: the apps on the phone, each opening what it is made of.
+/// X-ray's page: X-ray's switch, the last reading of a screen, and the apps on the phone, each opening what it is
+/// made of. Arriving with the switch off, it opens Accessibility at once (the brief: "if there is a setting that
+/// needs turned on the app should prompt immediatly when tapping"), once an arrival; the apps stay usable without it.
 class XrayPage extends StatefulWidget {
   const XrayPage({super.key});
 
@@ -17,6 +21,11 @@ class _XrayPageState extends State<XrayPage> {
   /// Null while the list is being read; empty where it could not be.
   List<AppChoice>? _apps;
 
+  /// What the phone last said of X-ray; null until it has answered, or where it gives no answer.
+  XrayState? _state;
+  bool _asked = false;
+  Timer? _timer;
+
   @override
   void initState() {
     super.initState();
@@ -25,14 +34,42 @@ class _XrayPageState extends State<XrayPage> {
     }).catchError((_) {
       if (mounted) setState(() => _apps = const []);
     });
+    _look();
+    // Looked at again each second: coming back from Accessibility, and after X-ray is closed on the phone, the page
+    // says so, and lets go of the capture as soon as the phone has.
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _look());
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _look() async {
+    final state = await Xray.state();
+    if (!mounted) return;
+    if (state != null && !state.on && !_asked) {
+      _asked = true;
+      Xray.ask();
+    }
+    setState(() => _state = state);
   }
 
   @override
   Widget build(BuildContext context) {
     final apps = _apps;
+    final state = _state;
+    final capture = state?.capture;
     return Screen(title: 'X-ray', subtitle: 'What an app is made of.', children: [
-      const Note('Choose an app to see what it is built with, read from the files of its package. Nothing is run, installed or sent anywhere.'),
+      if (state != null && !state.on) _switchOff(context),
+      if (state != null && state.on) Note(state.running ? 'X-ray is drawing over the app in front. Close it from its bar.' : 'X-ray is on. Start it from its tile over the app you want to look into.'),
+      if (state != null) ...[
+        const Heading('Last capture'),
+        if (capture == null) const Note('Nothing captured. Start X-ray from its tile over an app, then tap Open on its bar.') else _capture(context, capture),
+      ],
       const Heading('Apps'),
+      const Note('Choose an app to see what it is built with, read from the files of its package. Nothing is run, installed or sent anywhere.'),
       if (apps == null) const Note('Reading the apps...') else if (apps.isEmpty) const Note('No apps could be listed.'),
       if (apps != null)
         for (final app in apps)
@@ -46,6 +83,49 @@ class _XrayPageState extends State<XrayPage> {
           ),
     ]);
   }
+
+  Widget _switchOff(BuildContext context) {
+    final t = context.tokens;
+    return Panel(
+      key: const ValueKey('xray.switch'),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        const Txt('X-ray\'s switch is off', weight: 'semibold'),
+        SizedBox(height: t.space(1)),
+        const Txt('To read the screen of the app in front, X-ray needs its own switch in Accessibility. Under Installed apps (Downloaded apps on some phones), switch on Matt\'s Tools: X-ray.', size: 'sm', color: 'text-muted'),
+        SizedBox(height: t.space(3)),
+        const Btn('Open Accessibility', onPressed: Xray.ask),
+        SizedBox(height: t.space(3)),
+        const Txt(
+          'If the switch is greyed out, the phone is holding back an app it did not install from a store: open Settings, Apps, Matt\'s Tools, the three dots at the top, Allow restricted settings, then come back.',
+          size: 'sm',
+          color: 'text-muted',
+        ),
+      ]),
+    );
+  }
+
+  Widget _capture(BuildContext context, CaptureSummary c) {
+    final t = context.tokens;
+    final at = DateTime.fromMillisecondsSinceEpoch(c.at);
+    String two(int n) => n.toString().padLeft(2, '0');
+    return Panel(
+      key: const ValueKey('xray.capture'),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          AppIcon(c.package, name: c.label, size: 28),
+          SizedBox(width: t.space(3)),
+          Expanded(child: Txt(c.label, weight: 'semibold', maxLines: 1)),
+          Txt('${two(at.hour)}:${two(at.minute)}:${two(at.second)}', size: 'sm', color: 'text-muted'),
+        ]),
+        SizedBox(height: t.space(2)),
+        Txt('${c.count} ${c.count == 1 ? 'box' : 'boxes'}', size: 'xl', weight: 'semibold'),
+        if (c.cut) const Txt('Cut short: X-ray reads at most 3000 boxes, 64 deep.', size: 'sm', color: 'text-muted'),
+        if (c.inspectors.isNotEmpty) Txt('Read as ${_and(c.inspectors)}', size: 'sm', color: 'text-muted'),
+      ]),
+    );
+  }
+
+  String _and(List<String> words) => words.length == 1 ? words.first : '${words.sublist(0, words.length - 1).join(', ')} and ${words.last}';
 }
 
 /// The anatomy of one app: what it is built with and the files that show it, its libraries, assets, code and
